@@ -13,7 +13,6 @@
 #include<typeinfo>
 #include<iostream>
 #include<cassert>
-#include<zlib.h>
 #include<map>
 #include<memory>
 #include<stdint.h>
