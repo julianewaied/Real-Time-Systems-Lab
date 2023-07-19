@@ -16,7 +16,7 @@ def topdown_view(depth: np.ndarray):
     # empty picture
     pic = np.full((900,900,3), 255,dtype=np.uint8)
     for d in depth:
-        cv2.circle(pic, (int(d[0]), int(d[1])), 4, (0,0,0), 1)
+        cv2.circle(pic, (int(d[0]), int(d[2])), 4, (0,0,0), 1)
     return pic
 
 
