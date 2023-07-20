@@ -8,8 +8,8 @@ using std::string;
 using std::vector;
 using std::tuple;
 // MotionVector matrix dimensions!
-const int rows = 2;
-const int cols = 2;
+const int rows = 30;
+const int cols = 41;
 typedef tuple<int, int, int> MotionVector;
 typedef vector<MotionVector> matrow;
 typedef vector<matrow> matrix;
