@@ -1,3 +1,5 @@
 
 *.db
 Real Time Systems/.vs/Real Time Systems/v17/Browse.VC.opendb
+*.opendb
+.vs/Real Time Systems/v17/.suo

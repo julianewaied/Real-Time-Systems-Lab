@@ -1,5 +1,2 @@
-﻿  cnpy.cpp
-C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\src\cnpy.cpp(12,9): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-  main.cpp
-  Generating Code...
+﻿  main.cpp
   Real Time Systems.vcxproj -> C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\x64\Debug\Real Time Systems.exe
