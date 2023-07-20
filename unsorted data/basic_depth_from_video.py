@@ -14,7 +14,7 @@ def topdown_view(depth: np.ndarray):
     depth[:, :2] = np.squeeze(cv2.undistortPoints(depth[None, :, :2], cam_mat, dist_coeff))*depth[:, 2:]
     # depth is now a Nx3 3d point cloud
     # empty picture
-    pic = np.full((900,900,3), 255,dtype=np.uint8)
+    pic = np.full((700,700,3), 255,dtype=np.uint8)
     for d in depth:
         cv2.circle(pic, (int(d[0]), int(d[2])), 4, (0,0,0), 1)
     return pic
