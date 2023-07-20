@@ -1,4 +1,4 @@
-#include "../header/Utility.h"
+#include "../include/Utility.h"
 void CSVFile::openFile()
 {
 	if (this->path == "None") throw "Reading a file before assigment";
