@@ -1,4 +1,5 @@
 #include <iostream>
+#include <Eigen/Dense>
 #include "../include/Utility.h"
 const char* path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/src/test3.csv";
 int Run()
