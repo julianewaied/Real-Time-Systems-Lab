@@ -16,13 +16,13 @@ def topdown_view(depth: np.ndarray):
     # empty picture
     pic = np.full((700,700,3), 255,dtype=np.uint8)
     for d in depth:
-        cv2.circle(pic, (int(d[0]), int(d[2])), 4, (0,0,0), 1)
+        cv2.circle(pic, (int(d[0]+350), int(d[2])), 4, (0,0,0), 1)
     return pic
 
 
-save_video: bool = False  # turn off when saved video not required
+save_video: bool = True  # turn off when saved video not required
 show_video: bool = True  # turn off when video window not required
-top_down: bool = True  # turn on when working on topdown view
+top_down: bool = False  # turn on when working on topdown view
 cam_dir = os.path.join(Constants.ROOT_DIR, "mapping_wrappers/camera_config/pi/camera_data_480p.json")
 cam_mat, dist_coeff, _ = load_camera_data_json(cam_dir)
 path = os.path.join(Constants.ROOT_DIR, "results/depth_test1")
@@ -32,7 +32,7 @@ path = os.path.join(Constants.ROOT_DIR, "results/depth_test1")
 cap1 = cv2.VideoCapture(os.path.join(path, "rot1.h264"))
 cap2 = cv2.VideoCapture(os.path.join(path, "rot2.h264"))
 if save_video:
-    writer = cv2.VideoWriter(os.path.join(path, "depth.mp4"), cv2.VideoWriter_fourcc("M", "P", "4", "V"), 40,
+    writer = cv2.VideoWriter(os.path.join(path, "depth.mp4"), -1, 40,
                              (640, 480))
 else:
     writer = None  # just to stop warning
@@ -78,7 +78,7 @@ while True:
             cv2.rectangle(depth_frame, point[::] - 5, point[::] + 5, color, -1)
     if show_video:
         cv2.imshow("depth ORB", depth_frame)
-        cv2.waitKey(0)  # need some minimum time because opencv doesnt work without it
+        cv2.waitKey(1)  # need some minimum time because opencv doesnt work without it
     if save_video:
         writer.write(depth_frame)
 
