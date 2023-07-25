@@ -4,14 +4,13 @@
 #include <tuple>
 #include <fstream>
 #include <Eigen/Dense>
-#include <opencv2/core/types.hpp>
 #define NUM_FRM 100
 using std::string;
 using std::vector;
 // MotionVector matrix dimensions!
 const int rows = 30;
 const int cols = 41;
-typedef cv::Point3i MotionVector;
+typedef Eigen::Vector3i MotionVector;
 typedef vector<MotionVector> matrow;
 typedef vector<matrow> matrix;
 class CSVFile

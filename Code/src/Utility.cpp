@@ -55,6 +55,6 @@ MotionVector CSVFile::readNext()
 	std::istringstream stream(line);
 
 	stream >> a >> comma >> b >> comma >> c;
-	MotionVector vec = cv::Point3i(a,b,c);
+	MotionVector vec = MotionVector(a,b,c);
 	return vec;
 }
