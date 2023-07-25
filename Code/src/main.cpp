@@ -3,6 +3,7 @@
 #include "../include/Analysis.h"
 #include "../include/Utility.h"
 using namespace Eigen;
+using namespace std;
 const char* path = "C:/Users/WIN10PRO/Desktop//test.csv";
 int Run()
 {
@@ -12,4 +13,5 @@ int Run()
     std::cout << v[0][0][1] << std::endl;
     file.setPath("None");
     file.closeFile();
+    cout << getRotationMatrix(90, Eigen::Vector3d(0, 0, 1));
 }
