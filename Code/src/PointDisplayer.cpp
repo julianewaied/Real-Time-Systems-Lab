@@ -1,24 +1,42 @@
-#include "PointDisplayer.h"
+#include "../include/PointDisplayer.h"
+PointDisplayer::PointDisplayer(string& window_name):
+	window_name(window_name) {}
 
-PointDisplayer::PointDisplayer(string& window_name, const cv::Mat& image, vector<Point2i>& points) :
-	window_name(window_name), display_image(image),image(image), points(points) {}
+void PointDisplayer::display(const vector<Eigen::Vector2d>& points) const {
+	vector<cv::Point2i> points2d(points.size());
+	for (int i = 0;i < points.size();i++)
+	{
+		points2d[i].x = points[i](0);
+		points2d[i].y = points[i](1);
+	}
+	display(points2d);
+}
 
-void PointDisplayer::display() const {
+inline void PointDisplayer::displayPoint(const Point2i& point,cv::Mat img) const{
+	cv::circle(img, point, CIRCLE_RADIUS, cv::Scalar(0, 0, 255),2);
+}
+
+void PointDisplayer::display(const vector<cv::Point2i>& points) const
+{
 	//display_image(image);
 	cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
+	cv::Mat img(HEIGHT, WIDTH, CV_8UC3, cv::Scalar(255, 255, 255));
 
-
-	for (Point2i point :points){
-		displayPoint(point);
+	for (auto point : points) {
+		displayPoint(point, img);
 	}
 
-	cv::imshow(window_name, display_image);
+	cv::imshow(window_name, img);
 	cv::waitKey(0);
 }
 
-void PointDisplayer::displayPoint(Point2i& point) const{
-	Point2i p1 = point - Point2i(RECTANGLE_SIZE, RECTANGLE_SIZE);
-	Point2i p2 = point + Point2i(RECTANGLE_SIZE, RECTANGLE_SIZE);
-
-	cv::rectangle(display_image, p1, p2, cv::Scalar(0, 0, 255),cv::FILLED);
+void PointDisplayer::topDownView(const vector<Eigen::Vector3d>& points) const
+{
+	vector<cv::Point2i> points2d(points.size());
+	for(int i=0;i<points.size();i++)
+	{
+		points2d[i].x = points[i](0);
+		points2d[i].y = points[i](2);
+	}
+	display(points2d);
 }
