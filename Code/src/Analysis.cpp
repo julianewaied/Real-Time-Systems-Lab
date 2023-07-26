@@ -17,7 +17,32 @@ const Eigen::Matrix3d& Analyzer::buildCameraMatrix()
 	CameraMatrix(1, 1) = 1 / fy;
 	CameraMatrix(0, 2) = -cx / fx;
 	CameraMatrix(1, 2) = -cy / fy;
+	CameraMatrix(2, 2) = 1;
+	matrixBuilt = true;
 	return CameraMatrix;
 }
-
+vector<Eigen::Vector3d> Analyzer::mapNormalizedPoints(const vector<Eigen::Vector2d>& points)
+{
+	vector<Vector3d> mapped(points.size());
+	if (!matrixBuilt) buildCameraMatrix();
+	for (int i=0;i<points.size();i++)
+		mapped[i] = CameraMatrix * points[i].homogeneous();
+	return mapped;
+}
+vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH)
+{
+	auto normalized = this->mapNormalizedPoints(centers);
+	// now calculate d = fy * Delta(H)/Delta(y)
+	// assuming constant partial derivative of H.
+	vector<double> depths(centers.size());
+	for (int i = 0; i < depths.size();i++)
+	{
+		depths[i] = fy * dH / mv[i](1);
+	}
+	for (int i =0;i<normalized.size();i++)
+	{
+		normalized[i] = normalized[i] * depths[i];
+	}
+	return normalized;
+}
 

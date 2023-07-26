@@ -7,9 +7,7 @@ using namespace std;
 const char* path = "C:/Users/WIN10PRO/Desktop//test.csv";
 int Run()
 {
-    CSVFile file(path);
-    Analyzer a(1, 1, 2, 2);
-    a.buildCameraMatrix();
-    cout << a.getCameraMatrix() << endl;
-    cout << Analyzer::getRotationMatrix(90, Eigen::Vector3d(0, 0, 1));
+    Analyzer a(2, 2, 1, 1);
+    vector<Vector2d> list;
+    list.push_back(Vector2d(2, 2));
 }
