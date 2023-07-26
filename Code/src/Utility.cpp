@@ -4,9 +4,9 @@
 
 void CSVFile::openFile()
 {
-	if (this->path == "None") throw "Reading a file before assigment";
+	//if (this->path == "None") throw "Reading a file before assigment";
 	this->filp = std::fstream(this->path, std::ios::in);
-	if (!filp.is_open()) throw "Failed to open the File";
+	//if (!filp.is_open()) throw "Failed to open the File";
 }
 
 CSVFile::~CSVFile()
@@ -29,6 +29,7 @@ void CSVFile::setPath(const std::string& path)
 vector<matrix> CSVFile::readFile(int startPosition, int length)
 {
 	vector<matrix> all;
+	
 	for (int i = startPosition;i < length;i++)
 	{
 		// read matrix i
