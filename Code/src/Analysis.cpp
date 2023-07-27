@@ -33,17 +33,14 @@ vector<Eigen::Vector3d> Analyzer::mapNormalizedPoints(const vector<Eigen::Vector
 vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH)
 {
 	auto normalized = this->mapNormalizedPoints(centers);
+	vector<Vector3d> points;
 	// now calculate d = fy * Delta(H)/Delta(y)
 	// assuming constant partial derivative of H.
-	vector<double> depths(centers.size());
-	for (int i = 0; i < depths.size();i++)
-	{
-		depths[i] = fy * dH / mv[i](1);
-	}
 	for (int i =0;i<normalized.size();i++)
 	{
-		normalized[i] = normalized[i] * depths[i];
+		if(mv[i](1) != 0)
+			points.push_back(normalized[i] * fy * dH / mv[i](1));
 	}
-	return normalized;
+	return points;
 }
 

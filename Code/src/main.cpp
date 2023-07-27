@@ -7,10 +7,10 @@
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #define NUM_FRM 199
-double fx = 319.7108;
-double fy = 231.1376;
-double cx = 506.2113;
-double cy = 505.1260;
+double cx = 319.7108;
+double cy = 231.1376;
+double fx = 506.2113;
+double fy = 505.1260;
 const string path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/motion_data_rise.csv";
 
 // returns a list of MV for each frame.
@@ -39,6 +39,7 @@ int Run() {
     auto centers = getCenters();
     Analyzer analyzer(fx, fy, cx, cy);
     vector<Eigen::Vector3d> points = analyzer.mapPoints(centers,motionVectors[6], 1);
+    std::cout << points[0] << std::endl;
     string window_name = "Room Map";
     PointDisplayer displayer(window_name);
     displayer.topDownView(points);
