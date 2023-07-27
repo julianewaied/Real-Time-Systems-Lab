@@ -39,7 +39,7 @@ vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& cent
 	for (int i =0;i<normalized.size();i++)
 	{
 		if(mv[i](1) != 0)
-			points.push_back(normalized[i] * fy * dH / mv[i](1));
+			points.push_back(normalized[i] * fy * dH / std::abs(mv[i](1)));
 	}
 	return points;
 }
