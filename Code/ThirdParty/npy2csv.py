@@ -14,7 +14,8 @@ def npy_to_csv(npy_file_path, csv_file_path):
                 csv_writer.writerow([x, y, z])
 
 if __name__ == "__main__":
-    npy_file_path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/unsorted data/results/depth_test1/motion_data2.npy"
-    csv_file_path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/test.csv"
+    npy_file_path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/motion_data_rise.npy"
+    csv_file_path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/motion_data_rise.csv"
     
     npy_to_csv(npy_file_path, csv_file_path)
+    print("Done!!")

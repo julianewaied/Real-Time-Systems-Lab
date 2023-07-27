@@ -4,9 +4,12 @@
 
 void CSVFile::openFile()
 {
-	//if (this->path == "None") throw "Reading a file before assigment";
-	this->filp = std::fstream(this->path, std::ios::in);
-	//if (!filp.is_open()) throw "Failed to open the File";
+	if (this->path == "None") throw "Reading a file before assigment";
+	this->filp = std::ifstream(this->path, std::ios::in);
+	if (!filp.is_open()) {
+		std::cout << "Failed to open the file\n";
+		exit(1);
+	}
 }
 
 CSVFile::~CSVFile()
@@ -26,28 +29,24 @@ void CSVFile::setPath(const std::string& path)
 }
 // in default case, reads all the file. otherwise, reads from the required index to the required length
 // matrix will be replaced with eigen matrix later on.
-vector<matrix> CSVFile::readFile(int startPosition, int length)
+vector<frames> CSVFile::readFile(int length)
 {
-	vector<matrix> all;
-	
-	for (int i = startPosition;i < length;i++)
+	vector<frames> all;
+	if (length == -1) length = lines;
+	for (int i = 0;i < length;i++)
 	{
 		// read matrix i
-		matrix mvmat;
-		for (int i = 0;i < rows;i++)
+		frames frm;
+		for (int i = 0;i < ROWS*COLS;i++)
 		{
-			mvmat.push_back(matrow());
-			for (int j = 0;j < cols;j++)
-			{
-				mvmat[i].push_back(readNext());
-			}
+			frm.push_back(readNext3());
 		}
-		all.push_back(mvmat);
+		all.push_back(frm);
 	}
 	return all;
 }
 
-MotionVector CSVFile::readNext()
+MotionVector CSVFile::readNext3()
 {
 	int a, b, c;
 	char comma;
@@ -58,4 +57,32 @@ MotionVector CSVFile::readNext()
 	stream >> a >> comma >> b >> comma >> c;
 	MotionVector vec = MotionVector(a,b,c);
 	return vec;
+}
+
+double CSVFile::readNext1()
+{
+	double a = 0.0; // Initialize to a default value in case there's an error
+	std::string line;
+	if (!std::getline(filp, line)) {
+		std::cout << "Problem reading a line from the file!\n";
+	}
+	else {
+		std::istringstream stream(line);
+		stream >> a;
+		if (stream.fail()) {
+			std::cout << "Error converting to double: Invalid data format in line.\n";
+			a = 0.0; // Set to a default value
+		}
+	}
+	return a;
+}
+vector<double> CSVFile::readColumn(int length)
+{
+	vector<double> heights;
+	if (length == -1) length = lines;
+	for (int i = 0;i < length;i++)
+	{
+		heights.push_back(readNext1());
+	}
+	return heights;
 }
