@@ -8,7 +8,7 @@ using std::vector;
 // MotionVector matrix dimensions!
 const int ROWS = 30;
 const int COLS = 41;
-typedef Eigen::Vector3d MotionVector;
+typedef Eigen::Vector2d MotionVector;
 typedef vector<MotionVector> frames;
 class CSVFile
 {

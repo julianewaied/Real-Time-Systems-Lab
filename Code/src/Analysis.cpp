@@ -13,6 +13,7 @@ const Eigen::Matrix3d& Analyzer::getCameraMatrix() const
 }
 const Eigen::Matrix3d& Analyzer::buildCameraMatrix()
 {
+	if (matrixBuilt) return CameraMatrix;
 	CameraMatrix(0, 0) = 1 / fx;
 	CameraMatrix(1, 1) = 1 / fy;
 	CameraMatrix(0, 2) = -cx / fx;
