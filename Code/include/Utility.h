@@ -1,26 +1,25 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <tuple>
 #include <fstream>
 #include <Eigen/Dense>
-#define NUM_FRM 100
 using std::string;
 using std::vector;
 // MotionVector matrix dimensions!
-const int rows = 30;
-const int cols = 41;
-typedef Eigen::Vector3i MotionVector;
-typedef vector<MotionVector> matrow;
-typedef vector<matrow> matrix;
+const int ROWS = 30;
+const int COLS = 41;
+typedef Eigen::Vector2d MotionVector;
+typedef vector<MotionVector> frames;
 class CSVFile
 {
+	int lines;
 	string path;
-	std::fstream filp;
-	MotionVector readNext();
+	std::ifstream filp;
+	MotionVector readNext3();
+	double readNext1();
 
 public:
-	CSVFile(const std::string& path) : path(path) {};
+	CSVFile(const std::string& path, int lines) : path(path), lines(lines) {};
 
 	CSVFile() : path("None") {};
 
@@ -32,5 +31,8 @@ public:
 
 	void setPath(const std::string& path);
 
-	vector<matrix> readFile(int startPosition = 0, int length = NUM_FRM);
+	vector<frames> readFile(int length = -1);
+
+	vector<double> readColumn(int length = -1);
+
 };
