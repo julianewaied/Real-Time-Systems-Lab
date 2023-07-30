@@ -44,3 +44,16 @@ vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& cent
 	return points;
 }
 
+vector<double> Analyzer::getDepths(const frames& mv, double dH)
+{
+	vector<double> depths;
+	for (int i = 0;i < mv.size();i++)
+	{
+		if (mv[i](1))
+			depths.push_back(fy * dH / std::abs(mv[i](1)));
+		else
+			depths.push_back(0);
+	}
+	return depths;
+}
+

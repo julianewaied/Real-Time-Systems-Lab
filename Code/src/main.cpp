@@ -61,7 +61,7 @@ void differences(vector<double>& vec)
         vec[i] = tmp[i] - tmp[i - 1];
     }
 }
-int Run() {
+int Show_TopDown() {
     auto motionVectors = importMV(path);
     CSVFile height_file(heights_path,NUM_FRM);
     height_file.openFile();
@@ -81,4 +81,24 @@ int Run() {
     PointDisplayer displayer(window_name);
     displayer.topDownView(points);
     return 0;
+}
+int Run()
+{
+    auto motionVectors = importMV(path);
+    CSVFile height_file(heights_path, NUM_FRM);
+    height_file.openFile();
+    auto heights = height_file.readColumn();
+    auto centers = getCenters();
+    Analyzer analyzer(fx, fy, cx, cy);
+    vector<Eigen::Vector3d> points;
+    // continuize the heights function.
+    continuize(heights);
+    differences(heights);
+    // get the depths of all the centers. if 0 don't draw the center
+    vector<vector<double>> depths;
+    for (int i = 0;i < motionVectors.size();i++)
+    {
+        depths.push_back(analyzer.getDepths(motionVectors[i], heights[i]));
+    }
+
 }
