@@ -15,6 +15,7 @@ const string path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT sys
 const string heights_path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/close/tello_heights.csv";
 using std::cout;
 // returns a list of MV for each frame.
+
 vector<frames> importMV(const string& path)
 {
     CSVFile file(path,NUM_FRM);
@@ -61,7 +62,7 @@ void differences(vector<double>& vec)
         vec[i] = tmp[i] - tmp[i - 1];
     }
 }
-int Show_TopDown() {
+int BuildTDView() {
     auto motionVectors = importMV(path);
     CSVFile height_file(heights_path,NUM_FRM);
     height_file.openFile();
@@ -77,12 +78,17 @@ int Show_TopDown() {
         vector<Eigen::Vector3d> tmp = analyzer.mapPoints(centers, motionVectors[i], heights[i]);
         points.insert(points.end(), tmp.begin(), tmp.end());
     }
+    for (auto p : points)
+    {
+        p(0) = p(0) / p(2);
+        p(1) = p(1) / p(2);
+    }
     string window_name = "Room Map";
     PointDisplayer displayer(window_name);
     displayer.topDownView(points);
     return 0;
 }
-int Run()
+int BuildDepthMap()
 {
     auto motionVectors = importMV(path);
     CSVFile height_file(heights_path, NUM_FRM);
@@ -100,5 +106,9 @@ int Run()
     {
         depths.push_back(analyzer.getDepths(motionVectors[i], heights[i]));
     }
-
+}
+int Run()
+{
+    BuildTDView();
+    return 0;
 }
