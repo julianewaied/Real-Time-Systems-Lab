@@ -6,14 +6,13 @@
 #include <string>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
-#define NUM_FRM 199
-double cx = 319.7108;
-double cy = 231.1376;
-double fx = 506.2113;
-double fy = 505.1260;
-const string path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/close/close.csv";
-const string heights_path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/close/tello_heights.csv";
+#define NUM_FRM 24
+const double cx = 319.7108;
+const double cy = 231.1376;
+const double fx = 506.2113;
+const double fy = 505.1260;
 using std::cout;
+using std::set;
 // returns a list of MV for each frame.
 
 vector<frames> importMV(const string& path)
@@ -62,33 +61,8 @@ void differences(vector<double>& vec)
         vec[i] = tmp[i] - tmp[i - 1];
     }
 }
-int BuildTDView() {
-    auto motionVectors = importMV(path);
-    CSVFile height_file(heights_path,NUM_FRM);
-    height_file.openFile();
-    auto heights = height_file.readColumn();
-    auto centers = getCenters();
-    Analyzer analyzer(fx, fy, cx, cy);
-    vector<Eigen::Vector3d> points;
-    // continuize the heights function.
-    continuize(heights);
-    differences(heights);
-    for (int i=0;i<motionVectors.size();i++)
-    {
-        vector<Eigen::Vector3d> tmp = analyzer.mapPoints(centers, motionVectors[i], heights[i]);
-        points.insert(points.end(), tmp.begin(), tmp.end());
-    }
-    for (auto p : points)
-    {
-        p(0) = p(0) / p(2);
-        p(1) = p(1) / p(2);
-    }
-    string window_name = "Room Map";
-    PointDisplayer displayer(window_name);
-    displayer.topDownView(points);
-    return 0;
-}
-int BuildDepthMap()
+
+vector<Eigen::Vector3d> extractPoints(string path, string heights_path,int angle)
 {
     auto motionVectors = importMV(path);
     CSVFile height_file(heights_path, NUM_FRM);
@@ -100,15 +74,71 @@ int BuildDepthMap()
     // continuize the heights function.
     continuize(heights);
     differences(heights);
-    // get the depths of all the centers. if 0 don't draw the center
-    vector<vector<double>> depths;
     for (int i = 0;i < motionVectors.size();i++)
     {
-        depths.push_back(analyzer.getDepths(motionVectors[i], heights[i]));
+        vector<Eigen::Vector3d> tmp = analyzer.mapPoints(centers, motionVectors[i], heights[i]);
+        points.insert(points.end(), tmp.begin(), tmp.end());
     }
+    Analyzer::rotatePoints(points,angle);
+    return points;
 }
+void showTD(vector<Eigen::Vector3d> points)
+{
+    string window_name = "Room Map";
+    PointDisplayer displayer(window_name);
+    displayer.topDownView(points);
+}
+int BuildTDView(vector<string> mvFiles, vector<string> heightFiles) 
+{
+
+    if (mvFiles.size() != heightFiles.size()) throw "Invalid sizes in BuildTDView";
+    vector<Eigen::Vector3d> points;
+    for (int i = 0;i < mvFiles.size();i++)
+    {
+        auto tmp = extractPoints(mvFiles[i], heightFiles[i], 60*i);
+        std::cout << "Processing Angle : " << 60 * i << std::endl;
+        points.insert(points.end(), tmp.begin(), tmp.end());
+    }
+    showTD(points);
+    return 0;
+}
+//int BuildDepthMap()
+//{
+//    auto motionVectors = importMV(path);
+//    CSVFile height_file(heights_path, NUM_FRM);
+//    height_file.openFile();
+//    auto heights = height_file.readColumn();
+//    auto centers = getCenters();
+//    Analyzer analyzer(fx, fy, cx, cy);
+//    vector<Eigen::Vector3d> points;
+//    // continuize the heights function.
+//    continuize(heights);
+//    differences(heights);
+//    // get the depths of all the centers. if 0 don't draw the center
+//    vector<vector<double>> depths;
+//    for (int i = 0;i < motionVectors.size();i++)
+//    {
+//        depths.push_back(analyzer.getDepths(motionVectors[i], heights[i]));
+//    }
+//}
 int Run()
 {
-    BuildTDView();
+    vector<string> heights{
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise0.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall0.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise1.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall1.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise2.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall2.csv"
+    };
+    vector<string> mvs{
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise0.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall0.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise1.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall1.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise2.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
+    };
+    BuildTDView(mvs,heights);
     return 0;
 }

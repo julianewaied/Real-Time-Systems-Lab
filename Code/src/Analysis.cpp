@@ -7,10 +7,31 @@ Eigen::Matrix3<double> Analyzer::getRotationMatrix(double theta,const Eigen::Vec
 	Eigen::Matrix3d rotation_matrix = rotation.toRotationMatrix();
 	return rotation_matrix;
 }
+
+Eigen::Matrix3d explicitRotation(int angle)
+{
+	double theta = EIGEN_PI * angle / 180;
+	Matrix3d mat = Matrix3d::Zero();
+	mat(0, 0) = cos(theta);
+	mat(0, 2) = sin(theta);
+	mat(2, 0) = -sin(theta);
+	mat(2, 2) = cos(theta);
+	return mat;
+}
+void Analyzer::rotatePoints(vector<Eigen::Vector3d>& points, double angle, const Eigen::Vector3d& axis)
+{
+	auto mat = getRotationMatrix(angle, axis);
+	for (int i =0;i<points.size();i++)
+	{
+		points[i] = mat * points[i];
+	}
+}
+
 const Eigen::Matrix3d& Analyzer::getCameraMatrix() const
 {
 	return this->CameraMatrix;
 }
+
 const Eigen::Matrix3d& Analyzer::buildCameraMatrix()
 {
 	if (matrixBuilt) return CameraMatrix;
@@ -22,6 +43,7 @@ const Eigen::Matrix3d& Analyzer::buildCameraMatrix()
 	matrixBuilt = true;
 	return CameraMatrix;
 }
+
 vector<Eigen::Vector3d> Analyzer::mapNormalizedPoints(const vector<Eigen::Vector2d>& points)
 {
 	vector<Vector3d> mapped(points.size());
@@ -30,6 +52,7 @@ vector<Eigen::Vector3d> Analyzer::mapNormalizedPoints(const vector<Eigen::Vector
 		mapped[i] = CameraMatrix * points[i].homogeneous();
 	return mapped;
 }
+
 vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH)
 {
 	auto normalized = this->mapNormalizedPoints(centers);
