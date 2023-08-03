@@ -6,8 +6,8 @@
 using std::string;
 using std::vector;
 // MotionVector matrix dimensions!
-const int ROWS = 30;
-const int COLS = 41;
+const int ROWS = 104;
+const int COLS = 77;
 typedef Eigen::Vector2d MotionVector;
 typedef vector<MotionVector> frames;
 class CSVFile
