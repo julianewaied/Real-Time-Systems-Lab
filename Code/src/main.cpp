@@ -104,25 +104,13 @@ int BuildTDView(vector<string> mvFiles, vector<string> heightFiles)
     showTD(points);
     return 0;
 }
-//int BuildDepthMap()
-//{
-//    auto motionVectors = importMV(path);
-//    CSVFile height_file(heights_path, NUM_FRM);
-//    height_file.openFile();
-//    auto heights = height_file.readColumn();
-//    auto centers = getCenters();
-//    Analyzer analyzer(fx, fy, cx, cy);
-//    vector<Eigen::Vector3d> points;
-//    // continuize the heights function.
-//    continuize(heights);
-//    differences(heights);
-//    // get the depths of all the centers. if 0 don't draw the center
-//    vector<vector<double>> depths;
-//    for (int i = 0;i < motionVectors.size();i++)
-//    {
-//        depths.push_back(analyzer.getDepths(motionVectors[i], heights[i]));
-//    }
-//}
+void BuildDepthMap(const string& path,const string& heights_path)
+{
+    auto points = extractPoints(path, heights_path, 0);
+    string name = "Depth Map";
+    PointDisplayer displayer(name);
+    displayer.showDepthMap(points);
+}
 void Testing()
 {
     vector<Eigen::Vector2d> motionVectors {
@@ -186,8 +174,10 @@ int Run()
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise2.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
     };
+    int i = 2;
+    BuildDepthMap(mvs_paths[i], heights[i]);
     //BuildTDView(mvs_paths,heights);
-    countFile(mvs_paths[0]);
+    //countFile(mvs_paths[0]);
      //Testing();
     return 0;
 }
