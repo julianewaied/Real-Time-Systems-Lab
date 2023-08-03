@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <map>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #define NUM_FRM 24
@@ -12,7 +13,8 @@ const double cy = 231.1376;
 const double fx = 506.2113;
 const double fy = 505.1260;
 using std::cout;
-using std::set;
+using std::map;
+using std::pair;
 // returns a list of MV for each frame.
 
 vector<frames> importMV(const string& path)
@@ -148,6 +150,24 @@ void Testing()
     }
     showTD(points);
 }
+void countFile(const string& path)
+{
+    auto mvs = importMV(path);
+    map<double, int> all;
+    for (int i = 0;i < mvs.size();i++)
+    {
+        frames& frm = mvs[i];
+        for (int j = 0;j < frm.size();j++)
+        {
+            all[frm[j](1)]++;
+        }
+    }
+    for (auto it = all.begin(); it != all.end(); ++it) {
+        const double key = it->first;
+        std::cout << key << " : " << it->second << std::endl;
+    }
+
+}
 int Run()
 {
     vector<string> heights{
@@ -158,7 +178,7 @@ int Run()
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise2.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall2.csv"
     };
-    vector<string> mvs{
+    vector<string> mvs_paths{
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise0.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall0.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise1.csv",
@@ -166,7 +186,8 @@ int Run()
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise2.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
     };
-    //BuildTDView(mvs,heights);
-    Testing();
+    //BuildTDView(mvs_paths,heights);
+    countFile(mvs_paths[0]);
+     //Testing();
     return 0;
 }
