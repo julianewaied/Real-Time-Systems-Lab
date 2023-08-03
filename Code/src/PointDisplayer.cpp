@@ -16,15 +16,17 @@ void PointDisplayer::fitPoints(vector<Point2i>& points) const
 		minY = std::min(p.y, minY);
 		minX = std::min(p.x, minX);
 	}
-	std::cout << "x between : " << minX << " " << maxX << std::endl;
 	int cx = (maxX + minX) / 2;
 	int cy = (maxY + minY) / 2;
 	int dx = std::abs(maxX - minX);
 	int dy = std::abs(maxY - minY);
+	dy = dy > 0 ? dy : abs(maxY)*2;
+	dx = dx > 0 ? dx : abs(maxX)*2;
+	// not final at all!!!!
 	for (int i = 0;i < points.size();i++)
 	{
-		points[i].x = (WIDTH - 10)  * (points[i].x - cx) / dx;
-		points[i].y = (HEIGHT - 10) * (points[i].y - cy) / dy;
+		points[i].x = (WIDTH * 0.8)  * (points[i].x -minX) / dx;
+		points[i].y = (HEIGHT * 0.8) * (points[i].y -minY) / dy;
 	}
 }
 
