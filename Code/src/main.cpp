@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <map>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #define NUM_FRM 24
@@ -12,7 +13,8 @@ const double cy = 231.1376;
 const double fx = 506.2113;
 const double fy = 505.1260;
 using std::cout;
-using std::set;
+using std::map;
+using std::pair;
 // returns a list of MV for each frame.
 
 vector<frames> importMV(const string& path)
@@ -102,25 +104,58 @@ int BuildTDView(vector<string> mvFiles, vector<string> heightFiles)
     showTD(points);
     return 0;
 }
-//int BuildDepthMap()
-//{
-//    auto motionVectors = importMV(path);
-//    CSVFile height_file(heights_path, NUM_FRM);
-//    height_file.openFile();
-//    auto heights = height_file.readColumn();
-//    auto centers = getCenters();
-//    Analyzer analyzer(fx, fy, cx, cy);
-//    vector<Eigen::Vector3d> points;
-//    // continuize the heights function.
-//    continuize(heights);
-//    differences(heights);
-//    // get the depths of all the centers. if 0 don't draw the center
-//    vector<vector<double>> depths;
-//    for (int i = 0;i < motionVectors.size();i++)
-//    {
-//        depths.push_back(analyzer.getDepths(motionVectors[i], heights[i]));
-//    }
-//}
+void BuildDepthMap(const string& path,const string& heights_path)
+{
+    auto points = extractPoints(path, heights_path, 0);
+    string name = "Depth Map";
+    PointDisplayer displayer(name);
+    displayer.showDepthMap(points);
+}
+void Testing()
+{
+    vector<Eigen::Vector2d> motionVectors {
+        Eigen::Vector2d(0,1),
+        Eigen::Vector2d(0,1),
+        Eigen::Vector2d(0,2),
+        Eigen::Vector2d(0,4)
+    };
+    double height = 2;
+    vector<Eigen::Vector2d> centers{
+        Eigen::Vector2d(1,0),
+        Eigen::Vector2d(0,1),
+        Eigen::Vector2d(1,1),
+        Eigen::Vector2d(0,0)
+    };
+    // (0,-2,2), (-2,0,2) ,  (0,0,1) , (-0.5,-0.5,0.5)
+    Analyzer analyzer(1, 1, 1, 1);
+    /*continuize(heights);
+    differences(heights);*/
+    vector<Eigen::Vector3d> points = analyzer.mapPoints(centers, motionVectors, height);
+    //Analyzer::rotatePoints(points, 90);
+    for (auto point : points)
+    {
+        std::cout << point.transpose() << std::endl;
+    }
+    showTD(points);
+}
+void countFile(const string& path)
+{
+    auto mvs = importMV(path);
+    map<double, int> all;
+    for (int i = 0;i < mvs.size();i++)
+    {
+        frames& frm = mvs[i];
+        for (int j = 0;j < frm.size();j++)
+        {
+            all[frm[j](1)]++;
+        }
+    }
+    for (auto it = all.begin(); it != all.end(); ++it) {
+        const double key = it->first;
+        std::cout << key << " : " << it->second << std::endl;
+    }
+
+}
 int Run()
 {
     vector<string> heights{
@@ -131,7 +166,7 @@ int Run()
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise2.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall2.csv"
     };
-    vector<string> mvs{
+    vector<string> mvs_paths{
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise0.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall0.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise1.csv",
@@ -139,6 +174,10 @@ int Run()
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise2.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
     };
-    BuildTDView(mvs,heights);
+    int i = 2;
+    BuildDepthMap(mvs_paths[i], heights[i]);
+    //BuildTDView(mvs_paths,heights);
+    //countFile(mvs_paths[0]);
+     //Testing();
     return 0;
 }

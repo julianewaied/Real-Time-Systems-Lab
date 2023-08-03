@@ -25,7 +25,7 @@ public:
 
 	void topDownView(const vector<Eigen::Vector3d>& points) const;
 
-	// takes in a video path and centers depth and plot the video with the rectangles.
-	void showDepthMap(const string& path, const vector<double>& depths, const vector<frames> centers);
+	// shows the points on a white image!
+	void showDepthMap(const vector<Eigen::Vector3d>& points) const;
 
 };

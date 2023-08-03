@@ -15,7 +15,7 @@ class CSVFile
 	int lines;
 	string path;
 	std::ifstream filp;
-	MotionVector readNext3();
+	MotionVector readNext2();
 	double readNext1();
 
 public:
