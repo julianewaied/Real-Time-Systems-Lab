@@ -40,8 +40,8 @@ void PointDisplayer::fitPoints(std::vector<cv::Point2i>& points) const {
 		cv::Rect boundingBox = cv::boundingRect(points);
 
 		// Calculate the scale factors to fit the points into the screen
-		double scaleX = (boundingBox.width == 0) ? 1.0 : static_cast<double>(WIDTH) / boundingBox.width;
-		double scaleY = (boundingBox.height == 0) ? 1.0 : static_cast<double>(HEIGHT) / boundingBox.height;
+		double scaleX = (boundingBox.width == 0) ? 1.0 : (static_cast<double>(WIDTH) / boundingBox.width)/2;
+		double scaleY = (boundingBox.height == 0) ? 1.0 : (static_cast<double>(HEIGHT) / boundingBox.height)/2;
 		double scaleFactor = std::min(scaleX, scaleY);
 
 		// Calculate the translation to center the points

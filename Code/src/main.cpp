@@ -121,6 +121,33 @@ int BuildTDView(vector<string> mvFiles, vector<string> heightFiles)
 //        depths.push_back(analyzer.getDepths(motionVectors[i], heights[i]));
 //    }
 //}
+void Testing()
+{
+    vector<Eigen::Vector2d> motionVectors {
+        Eigen::Vector2d(0,1),
+        Eigen::Vector2d(0,1),
+        Eigen::Vector2d(0,2),
+        Eigen::Vector2d(0,4)
+    };
+    double height = 2;
+    vector<Eigen::Vector2d> centers{
+        Eigen::Vector2d(1,0),
+        Eigen::Vector2d(0,1),
+        Eigen::Vector2d(1,1),
+        Eigen::Vector2d(0,0)
+    };
+    // (0,-2,2), (-2,0,2) ,  (0,0,1) , (-0.5,-0.5,0.5)
+    Analyzer analyzer(1, 1, 1, 1);
+    /*continuize(heights);
+    differences(heights);*/
+    vector<Eigen::Vector3d> points = analyzer.mapPoints(centers, motionVectors, height);
+    //Analyzer::rotatePoints(points, 90);
+    for (auto point : points)
+    {
+        std::cout << point.transpose() << std::endl;
+    }
+    showTD(points);
+}
 int Run()
 {
     vector<string> heights{
@@ -139,6 +166,7 @@ int Run()
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise2.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
     };
-    BuildTDView(mvs,heights);
+    //BuildTDView(mvs,heights);
+    Testing();
     return 0;
 }
