@@ -11,8 +11,8 @@ double cx = 319.7108;
 double cy = 231.1376;
 double fx = 506.2113;
 double fy = 505.1260;
-const string path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/close/close.csv";
-const string heights_path = "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/close/tello_heights.csv";
+const string path = "C:/Users/Malek/Dropbox/My PC (DESKTOP-CUL8BRV)/Documents/GitHub/Real-Time-Systems-Lab/Code/Data/close/close.csv";
+const string heights_path = "C:/Users/Malek/Dropbox/My PC (DESKTOP-CUL8BRV)/Documents/GitHub/Real-Time-Systems-Lab/Code/Data/close/tello_heights.csv";
 using std::cout;
 // returns a list of MV for each frame.
 vector<frames> importMV(const string& path)
@@ -79,6 +79,8 @@ int Run() {
     }
     string window_name = "Room Map";
     PointDisplayer displayer(window_name);
-    displayer.topDownView(points);
+    //displayer.topDownView(points);
+    displayer.depthMap(points, cv::Mat(700, 700, CV_8UC3, cv::Scalar(255, 255, 255)));
+
     return 0;
 }

@@ -11,12 +11,15 @@ class PointDisplayer {
 	const int CIRCLE_RADIUS = 2;
 	const int HEIGHT = 700;
 	const int WIDTH = 700;
-	const int RECTANGLE_SIZE = 30;
+	const int RECTANGLE_SIZE = 3;
+	const double Z_NORMAL = 270;
+	const double MIN= -90;
+	const double DIFF = 170;
 	string window_name;
-	
+
 	void fitPoints(vector<Point2i>& points) const;
 	void displayPoint(const Point2i& point, cv::Mat img) const;
-	void displayRect(const Point2i& point, cv::Mat img,const cv::Scalar &color) const;
+	void displayRect(const Point2i& point, cv::Mat &img,const cv::Scalar &color= cv::Scalar(0, 0, 255)) const;
 	void makeWindow(const cv::Mat &img) const;
 public:
 	PointDisplayer(string& window_name);
