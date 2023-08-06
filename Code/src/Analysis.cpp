@@ -18,6 +18,7 @@ Eigen::Matrix3d explicitRotation(int angle)
 	mat(2, 2) = cos(theta);
 	return mat;
 }
+
 void Analyzer::rotatePoints(vector<Eigen::Vector3d>& points, double angle, const Eigen::Vector3d& axis)
 {
 	auto mat = getRotationMatrix(angle, axis);
@@ -62,7 +63,7 @@ vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& cent
 	for (int i =0;i<normalized.size();i++)
 	{
 		if(mv[i](1) != 0)
-			points.push_back(normalized[i] * fy * std::abs(dH) / std::abs(mv[i](1)));
+			points.push_back(normalized[i] * std::abs(fy * dH / mv[i](1)));
 	}
 	return points;
 }

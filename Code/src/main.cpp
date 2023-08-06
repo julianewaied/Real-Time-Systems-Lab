@@ -8,15 +8,32 @@
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #define NUM_FRM 24
+using std::cout;
+using std::map;
+using std::pair;
+
 const double cx = 319.7108;
 const double cy = 231.1376;
 const double fx = 506.2113;
 const double fy = 505.1260;
-using std::cout;
-using std::map;
-using std::pair;
-// returns a list of MV for each frame.
+vector<string> heights{
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise0.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall0.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise1.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall1.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise2.csv",
+        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall2.csv"
+};
+vector<string> mvs_paths{
+    "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise0.csv",
+    "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall0.csv",
+    "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise1.csv",
+    "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall1.csv",
+    "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise2.csv",
+    "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
+};
 
+// returns a list of MV for each frame.
 vector<frames> importMV(const string& path)
 {
     CSVFile file(path,NUM_FRM);
@@ -55,6 +72,7 @@ void continuize(vector<double>& heights)
         j = i;
     }
 }
+
 void differences(vector<double>& vec)
 {
     vector<double> tmp = vec;
@@ -84,12 +102,14 @@ vector<Eigen::Vector3d> extractPoints(string path, string heights_path,int angle
     Analyzer::rotatePoints(points,angle);
     return points;
 }
+
 void showTD(vector<Eigen::Vector3d> points)
 {
     string window_name = "Room Map";
     PointDisplayer displayer(window_name);
     displayer.topDownView(points);
 }
+
 int BuildTDView(vector<string> mvFiles, vector<string> heightFiles) 
 {
 
@@ -104,6 +124,7 @@ int BuildTDView(vector<string> mvFiles, vector<string> heightFiles)
     showTD(points);
     return 0;
 }
+
 void BuildDepthMap(const string& path,const string& heights_path)
 {
     auto points = extractPoints(path, heights_path, 0);
@@ -111,33 +132,11 @@ void BuildDepthMap(const string& path,const string& heights_path)
     PointDisplayer displayer(name);
     displayer.showDepthMap(points);
 }
+
 void Testing()
 {
-    vector<Eigen::Vector2d> motionVectors {
-        Eigen::Vector2d(0,1),
-        Eigen::Vector2d(0,1),
-        Eigen::Vector2d(0,2),
-        Eigen::Vector2d(0,4)
-    };
-    double height = 2;
-    vector<Eigen::Vector2d> centers{
-        Eigen::Vector2d(1,0),
-        Eigen::Vector2d(0,1),
-        Eigen::Vector2d(1,1),
-        Eigen::Vector2d(0,0)
-    };
-    // (0,-2,2), (-2,0,2) ,  (0,0,1) , (-0.5,-0.5,0.5)
-    Analyzer analyzer(1, 1, 1, 1);
-    /*continuize(heights);
-    differences(heights);*/
-    vector<Eigen::Vector3d> points = analyzer.mapPoints(centers, motionVectors, height);
-    //Analyzer::rotatePoints(points, 90);
-    for (auto point : points)
-    {
-        std::cout << point.transpose() << std::endl;
-    }
-    showTD(points);
 }
+
 void countFile(const string& path)
 {
     auto mvs = importMV(path);
@@ -156,28 +155,10 @@ void countFile(const string& path)
     }
 
 }
+
 int Run()
 {
-    vector<string> heights{
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise0.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall0.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise1.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall1.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise2.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall2.csv"
-    };
-    vector<string> mvs_paths{
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise0.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall0.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise1.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall1.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise2.csv",
-        "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
-    };
-    int i = 2;
-    BuildDepthMap(mvs_paths[i], heights[i]);
-    //BuildTDView(mvs_paths,heights);
-    //countFile(mvs_paths[0]);
-     //Testing();
+    
+    
     return 0;
 }
