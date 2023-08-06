@@ -158,7 +158,7 @@ void countFile(const string& path)
 
 int Run()
 {
-    BuildTDView(mvs_paths, heights);
+    //BuildTDView(mvs_paths, heights);
     const int frame_num = 5;
     const int num_vid = 4;
     auto motionVectors = importMV(mvs_paths[4]);
@@ -207,8 +207,9 @@ int Run()
         {
             int ij = i * ROWS + j;
             double dy = (mvs[ij](1) - miny) / (maxy - miny);
+            double dx = mvs[ij](0);
             cv::Point p1(8 * i+1, 8 * j+1), p2(8 * i + 8-1, 8 * j + 8-1);
-            if(dy>=0)
+            if(dy>=0 && std::abs(dx)<10)
                 cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255, dy * 255), cv::FILLED);
         }
     }
