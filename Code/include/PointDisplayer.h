@@ -10,8 +10,8 @@ using std::string;
 using cv::Point2i;
 class PointDisplayer {
 	const int CIRCLE_RADIUS = 2;
-	const int HEIGHT = 700;
-	const int WIDTH = 700;
+	const int HEIGHT = 1000;
+	const int WIDTH = 1000;
 	string window_name;
 	
 	void fitPoints(vector<Point2i>& points) const;

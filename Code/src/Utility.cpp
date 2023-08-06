@@ -76,6 +76,7 @@ double CSVFile::readNext1()
 	}
 	return a;
 }
+
 vector<double> CSVFile::readColumn(int length)
 {
 	vector<double> heights;

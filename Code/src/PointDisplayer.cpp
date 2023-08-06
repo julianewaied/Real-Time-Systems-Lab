@@ -71,47 +71,20 @@ void PointDisplayer::topDownView(const vector<Eigen::Vector3d>& points) const
 	display(points2d);
 }
 
-double calculateMean(const std::vector<double>& depths) {
-	double sum = 0.0;
-	for (const double& depth : depths) {
-		sum += depth;
-	}
-	return sum / depths.size();
-}
-
-double calculateStandardDeviation(const std::vector<double>& depths, double mean) {
-	double variance = 0.0;
-	for (const double& depth : depths) {
-		variance += std::pow(depth - mean, 2);
-	}
-	variance /= depths.size();
-	return std::sqrt(variance);
-}
-
 void PointDisplayer::showDepthMap(const vector<Eigen::Vector3d>& points) const 
 {
 	vector<double> depths;
+	double maxd = points[0](2), mind = points[0](2);
 	for (auto p : points)
 	{
 		depths.push_back(p(2));
-		if(p(2)<0)
-			std::cout << "Negaitve";
+		maxd = std::max(p(2), maxd);
+		mind = std::min(p(2), mind);
 	}
-	double mean = calculateMean(depths);
-	double s = calculateStandardDeviation(depths, mean);
-	double A = 3;
-	double B = 1;
-	double min = B*mean - A*s;
-	double max = B*mean + A*s;
-	double d = max - min;
+	double d = maxd - mind;
 	for (int i = 0;i < depths.size();i++)
 	{
-		if (depths[i] > max)
-			depths[i] = 2;
-		else if (depths[i] < min)
-			depths[i] = -1;
-		else
-			depths[i] = (depths[i] - min) / d;
+		depths[i] = (depths[i] - mind) / d;
 	}
 	vector<Point2i> fit;
 	for (int i = 0;i < points.size();i++)
@@ -124,14 +97,7 @@ void PointDisplayer::showDepthMap(const vector<Eigen::Vector3d>& points) const
 
 	for (int i = 0;i < fit.size();i++) {
 		Point2i& point = fit[i];
-		// white is too far
-		if(depths[i]==2)
-			cv::circle(img, point, CIRCLE_RADIUS, cv::Scalar(255, 240, 240), 2);
-		// black is too close
-		else if(depths[i]==-1)
-			cv::circle(img, point, CIRCLE_RADIUS, cv::Scalar(0, 0, 0), 2);
-		else
-			cv::circle(img, point, 1, cv::Scalar(255 , 255 * depths[i], 255 * depths[i]), 2);
+		cv::circle(img, point, 1, cv::Scalar(255*depths[i]*1.5, 0, 0), 2);
 	}
 	cv::imshow(window_name, img);
 	cv::waitKey(0);
