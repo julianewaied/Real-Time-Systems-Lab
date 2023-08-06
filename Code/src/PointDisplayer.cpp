@@ -25,8 +25,8 @@ void PointDisplayer::fitPoints(vector<Point2i>& points) const
 	// not final at all!!!!
 	for (int i = 0;i < points.size();i++)
 	{
-		points[i].x = (WIDTH * 0.8)  * (points[i].x -MIN) / DIFF;
-		points[i].y = (HEIGHT * 0.8) * (points[i].y -MIN) / DIFF;
+		points[i].x = (WIDTH * 0.8)  * (points[i].x -minX) / dx;
+		points[i].y = (HEIGHT * 0.8) * (points[i].y -minY) / dy;
 	}
 }
 
@@ -82,8 +82,7 @@ void PointDisplayer::depthMap(const vector<Eigen::Vector3d>& points, cv::Mat img
 	fitPoints(points2d);
 	for (int i = 0; i < points2d.size(); i++) {
 		//display the point
-		//std::cout << points[i](2);
-		double r_value = 255 - (points[i](2) / Z_NORMAL) * 255;
+		double r_value = 255 - ((points[i](2) / Z_NORMAL) * 255);
 		displayRect(points2d[i], img, cv::Scalar(r_value, 0, 0));
 	}
 
@@ -99,4 +98,22 @@ void PointDisplayer::topDownView(const vector<Eigen::Vector3d>& points) const
 		points2d[i].y = points[i](2);
 	}
 	display(points2d);
+}
+
+
+void PointDisplayer::depthImage(cv::Mat img, const vector<Eigen::Vector2d>& points, const vector<double>& depths) const {
+	vector<cv::Point2i> pixels(points.size());
+	for (int i = 0; i < points.size(); i++)
+	{
+		pixels[i].x = points[i](0);
+		pixels[i].y = points[i](1);
+	}
+
+	for (int i = 0; i < pixels.size(); i++) {
+		//display the point
+		double r_value = 255 - ((depths[i]/ Z_NORMAL) * 255);
+		displayRect(pixels[i], img, cv::Scalar(r_value, 0, 0));
+	}
+
+	makeWindow(img);
 }

@@ -24,9 +24,12 @@ class PointDisplayer {
 public:
 	PointDisplayer(string& window_name);
 
+	void depthImage(cv::Mat img, const vector<Eigen::Vector2d>& points, const vector<double>& depths) const;
 	void display(const vector<Eigen::Vector2d>& points) const;
 	void display(const vector<cv::Point2i>& points) const;
+	//will be deleted
 	void depthMap(const vector<Eigen::Vector3d>& points,cv::Mat img) const;
+	
 	void topDownView(const vector<Eigen::Vector3d>& points) const;
 
 };
