@@ -12,7 +12,7 @@ class PointDisplayer {
 	const int HEIGHT = 700;
 	const int WIDTH = 700;
 	const int RECTANGLE_SIZE = 3;
-	const double Z_NORMAL = 270;
+	const double Z_NORMAL = 200;
 	const double MIN= -90;
 	const double DIFF = 170;
 	string window_name;
@@ -24,7 +24,7 @@ class PointDisplayer {
 public:
 	PointDisplayer(string& window_name);
 
-	void depthImage(cv::Mat img, const vector<Eigen::Vector2d>& points, const vector<double>& depths) const;
+	void depthImage(cv::Mat img, const vector<Eigen::Vector2d>& points, const vector<double>& depths, const vector<Eigen::Vector2d>& mvs) const;
 	void display(const vector<Eigen::Vector2d>& points) const;
 	void display(const vector<cv::Point2i>& points) const;
 	//will be deleted

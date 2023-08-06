@@ -101,18 +101,39 @@ void PointDisplayer::topDownView(const vector<Eigen::Vector3d>& points) const
 }
 
 
-void PointDisplayer::depthImage(cv::Mat img, const vector<Eigen::Vector2d>& points, const vector<double>& depths) const {
+void PointDisplayer::depthImage(cv::Mat img, const vector<Eigen::Vector2d>& points, const vector<double>& depths, const vector<Eigen::Vector2d>& mvs) const {
+	if (depths.size() == 0) return;
+
 	vector<cv::Point2i> pixels(points.size());
 	for (int i = 0; i < points.size(); i++)
 	{
 		pixels[i].x = points[i](0);
 		pixels[i].y = points[i](1);
 	}
+	double maxZ = *std::max_element(depths.begin(), depths.end());
+	double minZ = *std::min_element(depths.begin(), depths.end());
+
+	std::cout << maxZ << " " <<  minZ << std::endl;
 
 	for (int i = 0; i < pixels.size(); i++) {
 		//display the point
-		double r_value = 255 - ((depths[i]/ Z_NORMAL) * 255);
+		double r_value = 255 - (((depths[i]-minZ)/ (maxZ-minZ)) * (double)255);
 		displayRect(pixels[i], img, cv::Scalar(r_value, 0, 0));
+	}
+	
+	Point2i centerPoint, prevPoint;
+	//display mvs
+	
+	for (int i = 0,j=0; i < mvs.size(); i++) {
+		if (mvs[i](1) != 0) {
+			centerPoint.x = points[j](0);
+			centerPoint.y = points[j](1);
+			j++;
+
+			prevPoint.x = centerPoint.x - mvs[i](0);
+			prevPoint.y = centerPoint.y - mvs[i](1);
+			cv::line(img, centerPoint, prevPoint,cv::Scalar(0,0,255));
+		}
 	}
 
 	makeWindow(img);

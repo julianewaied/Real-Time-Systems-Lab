@@ -85,7 +85,7 @@ int Run() {
     }
     cv::Mat img;
 
-    for (int i=0;i<motionVectors.size();i++)
+    for (int i=1;i<motionVectors.size();i++)
     {
         vector<Eigen::Vector3d> tmp = analyzer.mapPoints(centers, motionVectors[i], heights[i]);
         points.insert(points.end(), tmp.begin(), tmp.end());
@@ -117,7 +117,7 @@ int Run() {
 
         
 
-        displayer.depthImage(img, pixels, depths);
+        displayer.depthImage(img, pixels, depths,motionVectors[i]);
 
 
     }
