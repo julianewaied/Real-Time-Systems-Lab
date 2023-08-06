@@ -158,7 +158,67 @@ void countFile(const string& path)
 
 int Run()
 {
-    
-    
+    BuildTDView(mvs_paths, heights);
+    const int frame_num = 5;
+    const int num_vid = 4;
+    auto motionVectors = importMV(mvs_paths[4]);
+    auto centers = getCenters();
+    string window_name = "Depth Map";
+    const int ROWS = 103;
+    const int COLS = 77;
+    frames& mvs = motionVectors[frame_num];
+    double maxy, miny;
+    maxy = miny = mvs[0](1);
+    for (auto mv : mvs)
+    {
+        maxy = std::max(maxy, mv(1));
+        //avoid y = 0
+        if(mv(1)) 
+            miny = std::min(miny, mv(1));
+    }
+
+
+
+
+
+
+    // Replace "your_video_path" with the actual path to your H.264 video file
+    std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
+
+    cv::VideoCapture cap(videoPath);
+
+    if (!cap.isOpened()) {
+        std::cout << "Error opening video file." << std::endl;
+        return -1;
+    }
+
+    int frameNumber = frame_num;
+
+    cap.set(cv::CAP_PROP_POS_FRAMES, frameNumber);
+
+    cv::Mat frame;
+    cap.read(frame);
+    cv::Mat resizedFrame;
+    cv::resize(frame, resizedFrame, cv::Size(), 0.5, 0.5); // Resize to half the dimensions
+
+    for (int i = 0;i < ROWS;i+=2)
+    {
+        for (int j = 0; j < COLS; j+=2)
+        {
+            int ij = i * ROWS + j;
+            double dy = (mvs[ij](1) - miny) / (maxy - miny);
+            cv::Point p1(8 * i+1, 8 * j+1), p2(8 * i + 8-1, 8 * j + 8-1);
+            if(dy>=0)
+                cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255, dy * 255), cv::FILLED);
+        }
+    }
+
+
+    cv::imshow("Frame", resizedFrame);
+    cv::waitKey(0);
+
+    cap.release();
+    cv::destroyAllWindows();
+
     return 0;
 }
