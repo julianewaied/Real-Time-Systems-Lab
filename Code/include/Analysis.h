@@ -1,4 +1,5 @@
 #pragma once
+#include "../include/Utility.h"
 #include <Eigen/Dense>
 #include <iostream>
 #include <vector>
@@ -27,6 +28,8 @@ public:
 	// returns C^-1 where C is the camera matrix.
 	const Eigen::Matrix3d& buildCameraMatrix();
 	
+	static void rotatePoints(vector<Eigen::Vector3d>& points, double angle, const Eigen::Vector3d& axis = Eigen::Vector3d(0, 1, 0));
+	vector<double> getDepths(const frames& mv, double dH);
 	// given a frame and its mv, with height difference, return the full map, without rotation
 	// assumes center[i] matches mv[i].
 	vector<Eigen::Vector3d>  mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH);

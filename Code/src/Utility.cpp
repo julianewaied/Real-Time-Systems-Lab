@@ -39,14 +39,14 @@ vector<frames> CSVFile::readFile(int length)
 		frames frm;
 		for (int i = 0;i < ROWS*COLS;i++)
 		{
-			frm.push_back(readNext3());
+			frm.push_back(readNext2());
 		}
 		all.push_back(frm);
 	}
 	return all;
 }
 
-MotionVector CSVFile::readNext3()
+MotionVector CSVFile::readNext2()
 {
 	int a, b, c;
 	char comma;

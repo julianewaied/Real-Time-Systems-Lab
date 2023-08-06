@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <string>
+#include "../include/Utility.h"
 using std::vector;
 using std::string;
 using cv::Point2i;
@@ -31,5 +32,8 @@ public:
 	void depthMap(const vector<Eigen::Vector3d>& points,cv::Mat img) const;
 	
 	void topDownView(const vector<Eigen::Vector3d>& points) const;
+
+	// shows the points on a white image!
+	void showDepthMap(const vector<Eigen::Vector3d>& points) const;
 
 };
