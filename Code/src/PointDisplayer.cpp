@@ -71,20 +71,36 @@ void PointDisplayer::topDownView(const vector<Eigen::Vector3d>& points) const
 	display(points2d);
 }
 
+double calculateMean(const std::vector<double>& depths) {
+	double sum = 0.0;
+	for (const double& depth : depths) {
+		sum += depth;
+	}
+	return sum / depths.size();
+}
+
+double calculateStandardDeviation(const std::vector<double>& depths, double mean) {
+	double variance = 0.0;
+	for (const double& depth : depths) {
+		variance += std::pow(depth - mean, 2);
+	}
+	variance /= depths.size();
+	return std::sqrt(variance);
+}
+
 void PointDisplayer::showDepthMap(const vector<Eigen::Vector3d>& points) const 
 {
 	vector<double> depths;
 	double maxd = points[0](2), mind = points[0](2);
 	for (auto p : points)
 	{
-		depths.push_back(p(2));
-		maxd = std::max(p(2), maxd);
-		mind = std::min(p(2), mind);
+		maxd = std::max(maxd, p(2));
+		mind = std::min(mind, p(2));
 	}
 	double d = maxd - mind;
-	for (int i = 0;i < depths.size();i++)
+	for (auto p : points)
 	{
-		depths[i] = (depths[i] - mind) / d;
+		depths.push_back((p(2) - mind) / d);
 	}
 	vector<Point2i> fit;
 	for (int i = 0;i < points.size();i++)
@@ -93,11 +109,11 @@ void PointDisplayer::showDepthMap(const vector<Eigen::Vector3d>& points) const
 	}
 	fitPoints(fit);
 	cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
-	cv::Mat img(600, 600, CV_8UC3, cv::Scalar(255, 255, 255));
+	cv::Mat img(HEIGHT, WIDTH, CV_8UC3, cv::Scalar(255, 255, 255));
 
 	for (int i = 0;i < fit.size();i++) {
 		Point2i& point = fit[i];
-		cv::circle(img, point, 1, cv::Scalar(255*depths[i]*1.5, 0, 0), 2);
+		cv::circle(img, point, 1, cv::Scalar(255 , 255 * depths[i], 255 * depths[i]), 2);
 	}
 	cv::imshow(window_name, img);
 	cv::waitKey(0);

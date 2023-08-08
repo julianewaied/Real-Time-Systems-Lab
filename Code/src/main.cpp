@@ -7,15 +7,17 @@
 #include <map>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
+#include <chrono>
+#include <thread>
+#define NUM_FRM 24
 using std::cout;
 using std::map;
 using std::pair;
-#define NUM_FRM 24
+
 const double cx = 319.7108;
 const double cy = 231.1376;
 const double fx = 506.2113;
 const double fy = 505.1260;
-// file paths
 vector<string> heights{
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_rise0.csv",
         "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/heights csv/tello_heights_fall0.csv",
@@ -32,7 +34,6 @@ vector<string> mvs_paths{
     "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/rise2.csv",
     "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
 };
-
 
 // returns a list of MV for each frame.
 vector<frames> importMV(const string& path)
@@ -77,11 +78,10 @@ void continuize(vector<double>& heights)
 void differences(vector<double>& vec)
 {
     vector<double> tmp = vec;
-    for (int i = 0;i < vec.size()-1;i++)
+    for (int i = 1;i < vec.size();i++)
     {
-        vec[i] = tmp[i+1] - tmp[i];
+        vec[i] = tmp[i] - tmp[i - 1];
     }
-    vec.pop_back();
 }
 
 vector<Eigen::Vector3d> extractPoints(string path, string heights_path,int angle)
@@ -93,17 +93,14 @@ vector<Eigen::Vector3d> extractPoints(string path, string heights_path,int angle
     auto centers = getCenters();
     Analyzer analyzer(fx, fy, cx, cy);
     vector<Eigen::Vector3d> points;
-
     // continuize the heights function.
     continuize(heights);
     differences(heights);
-
     for (int i = 0;i < motionVectors.size();i++)
     {
         vector<Eigen::Vector3d> tmp = analyzer.mapPoints(centers, motionVectors[i], heights[i]);
         points.insert(points.end(), tmp.begin(), tmp.end());
     }
-
     Analyzer::rotatePoints(points,angle);
     return points;
 }
@@ -130,18 +127,76 @@ int BuildTDView(vector<string> mvFiles, vector<string> heightFiles)
     return 0;
 }
 
-void BuildDepthMap(const string& path,const string& heights_path)
+void BuildDepthMap(const string& path,const string& videoPath)
 {
-    auto points = extractPoints(path, heights_path, 0);
-    string name = "Depth Map";
-    PointDisplayer displayer(name);
-    displayer.showDepthMap(points);
+    const int frame_num = 5;
+    const int num_vid = 4;
+    auto motionVectors = importMV(path);
+    auto centers = getCenters();
+    string window_name = "Depth Map";
+    vector<cv::Mat> frms(NUM_FRM);
+    static cv::VideoCapture cap(videoPath);
+    if (!cap.isOpened()) {
+        std::cout << "Error opening video file." << std::endl;
+        exit(-1);
+    }
+    for (int i = 0;i < NUM_FRM && cap.isOpened();i++)
+    {
+        cap >> frms[i];
+    }
+    cap.release();
+    cv::namedWindow(window_name);
+    for (int k = 0; 1;)
+    {
+        double maxy, miny;
+        auto& mvs = motionVectors[k];
+        if (mvs.size() != COLS * ROWS) cout << "ISSUE!!!";
+        maxy = miny = mvs[0](1);
+        for (auto mv : mvs)
+        {
+            maxy = std::max(maxy, mv(1));
+            //avoid y = 0
+            if (mv(1))
+                miny = std::min(miny, mv(1));
+        }
+
+        // Replace "your_video_path" with the actual path to your H.264 video file
+
+
+        cv::Mat resizedFrame;
+        cv::resize(frms[k], resizedFrame, cv::Size(), 0.5, 0.5); // Resize to half the dimensions
+
+        for (int i = 0;i < ROWS;i += 2)
+        {
+            for (int j = 0; j < COLS; j += 2)
+            {
+                int ij = i * COLS + j;
+                double dy = (mvs[ij](1) - miny) / (maxy - miny);
+                double dx = mvs[ij](0);
+                cv::Point p1(8 * i + 1, 8 * j + 1), p2(8 * i + 8 - 1, 8 * j + 8 - 1);
+                if (dy >= 0 && std::abs(dx) < 10)
+                    cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255, dy * 255), cv::FILLED);
+            }
+        }
+        cv::imshow(window_name, resizedFrame);
+        int key = 'X';
+        while (key != 'S' && key != 'W')
+        {
+            key = toupper(cv::waitKey(0));
+        }
+        // last frame is problematic + useless, just ignore it!
+        if (key == 'W') k = std::min(k + 1, static_cast<int>(motionVectors.size()) - 1);
+        else if (key == 'S') k = std::max(k - 1, 0);
+    }
+    cv::waitKey(0);
+    cv::destroyAllWindows();
+
 }
 
 void Testing()
 {
-    
 }
+
 
 void countFile(const string& path)
 {
@@ -157,34 +212,16 @@ void countFile(const string& path)
     }
     for (auto it = all.begin(); it != all.end(); ++it) {
         const double key = it->first;
-        //std::cout << key << " : " << it->second << std::endl;
+        std::cout << key << " : " << it->second << std::endl;
     }
 
 }
 
 int Run()
 {
-    string path = mvs_paths[0];
-    string heights_path = heights[0];
-    auto motionVectors = importMV(path);
-    CSVFile height_file(heights_path, NUM_FRM);
-    height_file.openFile();
-    auto heights = height_file.readColumn();
-    auto centers = getCenters();
-    string window_name = "Depth Map";
-    const int ROWS = 104;
-    const int COLS = 77;
-    cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
-    cv::Mat img(ROWS * 16, COLS * 16, CV_8UC3, cv::Scalar(255, 255, 255));
-    for(int i=0;i<ROWS;i++)
-    {
-        for (int j = 0;j < COLS;j++)
-        {
-            cv::Point p1(16 * i, 16 * j), p2(16 * i + 16, 16*j + 16);
-            cv::rectangle(img, p1, p2, cv::Scalar(255, 0, 0), 10, cv::FILLED);
-        }
-    }
-    cv::imshow(window_name, img);
-    cv::waitKey(0);
+    //BuildTDView(mvs_paths, heights);
+    int i = 0;
+    static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
+    BuildDepthMap(mvs_paths[i], videoPath);
     return 0;
 }
