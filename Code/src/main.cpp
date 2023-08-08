@@ -7,6 +7,8 @@
 #include <map>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
+#include <chrono>
+#include <thread>
 #define NUM_FRM 24
 using std::cout;
 using std::map;
@@ -125,17 +127,76 @@ int BuildTDView(vector<string> mvFiles, vector<string> heightFiles)
     return 0;
 }
 
-void BuildDepthMap(const string& path,const string& heights_path)
+void BuildDepthMap(const string& path,const string& videoPath)
 {
-    auto points = extractPoints(path, heights_path, 0);
-    string name = "Depth Map";
-    PointDisplayer displayer(name);
-    displayer.showDepthMap(points);
+    const int frame_num = 5;
+    const int num_vid = 4;
+    auto motionVectors = importMV(path);
+    auto centers = getCenters();
+    string window_name = "Depth Map";
+    vector<cv::Mat> frms(NUM_FRM);
+    static cv::VideoCapture cap(videoPath);
+    if (!cap.isOpened()) {
+        std::cout << "Error opening video file." << std::endl;
+        exit(-1);
+    }
+    for (int i = 0;i < NUM_FRM && cap.isOpened();i++)
+    {
+        cap >> frms[i];
+    }
+    cap.release();
+    cv::namedWindow(window_name);
+    for (int k = 0; 1;)
+    {
+        double maxy, miny;
+        auto& mvs = motionVectors[k];
+        if (mvs.size() != COLS * ROWS) cout << "ISSUE!!!";
+        maxy = miny = mvs[0](1);
+        for (auto mv : mvs)
+        {
+            maxy = std::max(maxy, mv(1));
+            //avoid y = 0
+            if (mv(1))
+                miny = std::min(miny, mv(1));
+        }
+
+        // Replace "your_video_path" with the actual path to your H.264 video file
+
+
+        cv::Mat resizedFrame;
+        cv::resize(frms[k], resizedFrame, cv::Size(), 0.5, 0.5); // Resize to half the dimensions
+
+        for (int i = 0;i < ROWS;i += 2)
+        {
+            for (int j = 0; j < COLS; j += 2)
+            {
+                int ij = i * ROWS + j;
+                double dy = (mvs[ij](1) - miny) / (maxy - miny);
+                double dx = mvs[ij](0);
+                cv::Point p1(8 * i + 1, 8 * j + 1), p2(8 * i + 8 - 1, 8 * j + 8 - 1);
+                if (dy >= 0 && std::abs(dx) < 10)
+                    cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255, dy * 255), cv::FILLED);
+            }
+        }
+        cv::imshow(window_name, resizedFrame);
+        int key = 'X';
+        while (key != 'S' && key != 'W')
+        {
+            key = toupper(cv::waitKey(0));
+        }
+        // last frame is problematic + useless, just ignore it!
+        if (key == 'W') k = std::min(k + 1, static_cast<int>(motionVectors.size()) - 1);
+        else if (key == 'S') k = std::max(k - 1, 0);
+    }
+    cv::waitKey(0);
+    cv::destroyAllWindows();
+
 }
 
 void Testing()
 {
 }
+
 
 void countFile(const string& path)
 {
@@ -159,67 +220,8 @@ void countFile(const string& path)
 int Run()
 {
     //BuildTDView(mvs_paths, heights);
-    const int frame_num = 5;
-    const int num_vid = 4;
-    auto motionVectors = importMV(mvs_paths[4]);
-    auto centers = getCenters();
-    string window_name = "Depth Map";
-    const int ROWS = 103;
-    const int COLS = 77;
-    frames& mvs = motionVectors[frame_num];
-    double maxy, miny;
-    maxy = miny = mvs[0](1);
-    for (auto mv : mvs)
-    {
-        maxy = std::max(maxy, mv(1));
-        //avoid y = 0
-        if(mv(1)) 
-            miny = std::min(miny, mv(1));
-    }
-
-
-
-
-
-
-    // Replace "your_video_path" with the actual path to your H.264 video file
-    std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
-
-    cv::VideoCapture cap(videoPath);
-
-    if (!cap.isOpened()) {
-        std::cout << "Error opening video file." << std::endl;
-        return -1;
-    }
-
-    int frameNumber = frame_num;
-
-    cap.set(cv::CAP_PROP_POS_FRAMES, frameNumber);
-
-    cv::Mat frame;
-    cap.read(frame);
-    cv::Mat resizedFrame;
-    cv::resize(frame, resizedFrame, cv::Size(), 0.5, 0.5); // Resize to half the dimensions
-
-    for (int i = 0;i < ROWS;i+=2)
-    {
-        for (int j = 0; j < COLS; j+=2)
-        {
-            int ij = i * ROWS + j;
-            double dy = (mvs[ij](1) - miny) / (maxy - miny);
-            double dx = mvs[ij](0);
-            cv::Point p1(8 * i+1, 8 * j+1), p2(8 * i + 8-1, 8 * j + 8-1);
-            if(dy>=0 && std::abs(dx)<10)
-                cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255, dy * 255), cv::FILLED);
-        }
-    }
-
-
-    cv::imshow("Frame", resizedFrame);
-    cv::waitKey(0);
-
-    cap.release();
-    cv::destroyAllWindows();
-
+    int i = 0;
+    static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
+    BuildDepthMap(mvs_paths[i], videoPath);
     return 0;
 }

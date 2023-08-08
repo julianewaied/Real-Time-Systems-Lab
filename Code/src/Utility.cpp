@@ -37,10 +37,9 @@ vector<frames> CSVFile::readFile(int length)
 	{
 		// read matrix i
 		frames frm;
-		for (int i = 0;i < ROWS*COLS;i++)
-		{
-			frm.push_back(readNext2());
-		}
+		for (int i = 0;i < ROWS;i++)
+			for(int j=0;j<COLS;j++)
+				frm.push_back(readNext2());
 		all.push_back(frm);
 	}
 	return all;

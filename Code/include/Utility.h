@@ -6,7 +6,7 @@
 using std::string;
 using std::vector;
 // MotionVector matrix dimensions!
-const int ROWS = 103;
+const int ROWS = 102;
 const int COLS = 77;
 typedef Eigen::Vector2d MotionVector;
 typedef vector<MotionVector> frames;
