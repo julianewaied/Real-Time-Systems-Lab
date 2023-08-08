@@ -170,7 +170,7 @@ void BuildDepthMap(const string& path,const string& videoPath)
         {
             for (int j = 0; j < COLS; j += 2)
             {
-                int ij = i * ROWS + j;
+                int ij = i * COLS + j;
                 double dy = (mvs[ij](1) - miny) / (maxy - miny);
                 double dx = mvs[ij](0);
                 cv::Point p1(8 * i + 1, 8 * j + 1), p2(8 * i + 8 - 1, 8 * j + 8 - 1);
