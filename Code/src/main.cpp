@@ -127,7 +127,7 @@ int BuildTDView(vector<string> mvFiles, vector<string> heightFiles)
     return 0;
 }
 
-void BuildDepthMap(const string& path,const string& videoPath)
+void BuildDepthMap(const string& path,const string& videoPath, vector<vector<double>> sads)
 {
     const int frame_num = 5;
     const int num_vid = 4;
@@ -150,14 +150,19 @@ void BuildDepthMap(const string& path,const string& videoPath)
     {
         double maxy, miny;
         auto& mvs = motionVectors[k];
-        if (mvs.size() != COLS * ROWS) cout << "ISSUE!!!";
-        maxy = miny = mvs[0](1);
-        for (auto mv : mvs)
+        auto& sad = sads[k];
+        vector<double> depths;
+        for (auto mv : mvs) depths.push_back(mv(1));
+        maxy = miny = depths[0];
+        for (int i=0;i<depths.size();i++)
         {
-            maxy = std::max(maxy, mv(1));
-            //avoid y = 0
-            if (mv(1))
-                miny = std::min(miny, mv(1));
+            double d = depths[i];
+            double s = sad[i];
+            if (d >= 0 && s > 10)
+            {
+                maxy = std::max(maxy, d);
+                miny = std::min(miny, d);
+            }
         }
 
         // Replace "your_video_path" with the actual path to your H.264 video file
@@ -171,11 +176,11 @@ void BuildDepthMap(const string& path,const string& videoPath)
             for (int j = 0; j < COLS; j += 2)
             {
                 int ij = i * COLS + j;
-                double dy = (mvs[ij](1) - miny) / (maxy - miny);
-                double dx = mvs[ij](0);
-                cv::Point p1(8 * i + 1, 8 * j + 1), p2(8 * i + 8 - 1, 8 * j + 8 - 1);
-                if (dy >= 0 && std::abs(dx) < 10)
-                    cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255, dy * 255), cv::FILLED);
+                double dy = (depths[ij] - miny) / (maxy - miny);
+                cv::Point p1(8 * i, 8 * j), p2(8 * i + 8, 8 * j + 8);
+                int s = sad[ij];
+                if (dy >= 0 && s > 10)
+                    cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy *255/2,  dy*255/2), cv::FILLED);
             }
         }
         cv::imshow(window_name, resizedFrame);
@@ -222,6 +227,10 @@ int Run()
     //BuildTDView(mvs_paths, heights);
     int i = 0;
     static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
-    BuildDepthMap(mvs_paths[i], videoPath);
+    //BuildDepthMap(mvs_paths[i], videoPath);
+    CSVFile file(mvs_paths[i], NUM_FRM);
+    file.openFile();
+    vector<vector<double>> SADs = file.getSAD();
+    BuildDepthMap(mvs_paths[i], videoPath,SADs);
     return 0;
 }

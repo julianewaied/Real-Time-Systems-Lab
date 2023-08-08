@@ -33,7 +33,7 @@ vector<frames> CSVFile::readFile(int length)
 {
 	vector<frames> all;
 	if (length == -1) length = lines;
-	for (int i = 0;i < length;i++)
+	for (int k = 0;k < length;k++)
 	{
 		// read matrix i
 		frames frm;
@@ -44,7 +44,41 @@ vector<frames> CSVFile::readFile(int length)
 	}
 	return all;
 }
+vector<vector<double>> CSVFile::getSAD(int length)
+{
+	vector<vector<double>> all;
+	if (length == -1) length = lines;
+	for (int i = 0;i < length;i++)
+	{
+		vector<double> v;
+		for(int j = 0; j<ROWS; j++)
+			for(int k=0;k<COLS;k++)
+				v.push_back(readNextSAD());
+		all.push_back(v);
+	}
+	return all;
+}
 
+double CSVFile::readNextSAD()
+{
+	double a = 0.0; // Initialize to a default value in case there's an error
+	double b = 0.0;
+	double c = 0.0;
+	char ch = ',';
+	std::string line;
+	if (!std::getline(filp, line)) {
+		std::cout << "Problem reading a line from the file!\n";
+	}
+	else {
+		std::istringstream stream(line);
+		stream >> a >>ch>> b >> ch >> c;
+		if (stream.fail()) {
+			std::cout << "Error converting to double: Invalid data format in line.\n";
+			a = 0.0; // Set to a default value
+		}
+	}
+	return c;
+}
 MotionVector CSVFile::readNext2()
 {
 	int a, b, c;
