@@ -1,6 +1,15 @@
 #include "../include/PointDisplayer.h"
 #include <iostream>
+#include "../include/Analysis.h"
 #include <map>
+#define NUM_FRM 24
+#define CONDITION (d>0 && s>100)
+const double cx = 319.7108;
+const double cy = 231.1376;
+const double fx = 506.2113;
+const double fy = 505.1260;
+
+
 PointDisplayer::PointDisplayer(string& window_name):
 	window_name(window_name) {}
 
@@ -63,7 +72,7 @@ void PointDisplayer::display(const vector<cv::Point2i>& points) const
 void PointDisplayer::topDownView(const vector<Eigen::Vector3d>& points) const
 {
 	vector<cv::Point2i> points2d(points.size());
-	for(int i=0;i<points.size();i++)
+	for (int i = 0;i < points.size();i++)
 	{
 		points2d[i].x = points[i](0);
 		points2d[i].y = points[i](2);
@@ -71,51 +80,92 @@ void PointDisplayer::topDownView(const vector<Eigen::Vector3d>& points) const
 	display(points2d);
 }
 
-double calculateMean(const std::vector<double>& depths) {
-	double sum = 0.0;
-	for (const double& depth : depths) {
-		sum += depth;
-	}
-	return sum / depths.size();
-}
-
-double calculateStandardDeviation(const std::vector<double>& depths, double mean) {
-	double variance = 0.0;
-	for (const double& depth : depths) {
-		variance += std::pow(depth - mean, 2);
-	}
-	variance /= depths.size();
-	return std::sqrt(variance);
-}
-
-void PointDisplayer::showDepthMap(const vector<Eigen::Vector3d>& points) const 
+int PointDisplayer::BuildTDView(vector<string> mvFiles, vector<string> heightFiles)
 {
-	vector<double> depths;
-	double maxd = points[0](2), mind = points[0](2);
-	for (auto p : points)
-	{
-		maxd = std::max(maxd, p(2));
-		mind = std::min(mind, p(2));
-	}
-	double d = maxd - mind;
-	for (auto p : points)
-	{
-		depths.push_back((p(2) - mind) / d);
-	}
-	vector<Point2i> fit;
-	for (int i = 0;i < points.size();i++)
-	{
-		fit.push_back(Point2i(points[i](0), points[i](1)));
-	}
-	fitPoints(fit);
-	cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
-	cv::Mat img(HEIGHT, WIDTH, CV_8UC3, cv::Scalar(255, 255, 255));
 
-	for (int i = 0;i < fit.size();i++) {
-		Point2i& point = fit[i];
-		cv::circle(img, point, 1, cv::Scalar(255 , 255 * depths[i], 255 * depths[i]), 2);
+	if (mvFiles.size() != heightFiles.size()) throw "Invalid sizes in BuildTDView";
+	vector<Eigen::Vector3d> points;
+	Analyzer a(fx, fy, cx, cy);
+	for (int i = 0;i < mvFiles.size();i++)
+	{
+		auto tmp = a.extractPoints(mvFiles[i], heightFiles[i], 60 * i);
+		std::cout << "Processing Angle : " << 60 * i << std::endl;
+		points.insert(points.end(), tmp.begin(), tmp.end());
 	}
-	cv::imshow(window_name, img);
+	//string window_name = "Room Map";
+	//PointDisplayer displayer(window_name);
+	//displayer.topDownView(points);
+	return 0;
+}
+
+void PointDisplayer::BuildDepthMap(const string& path, const string& videoPath, vector<vector<double>> sads)
+{
+	const int frame_num = 5;
+	const int num_vid = 4;
+	auto motionVectors = Analyzer::importMV(path);
+	auto centers = Analyzer::getCenters();
+	string window_name = "Depth Map";
+	vector<cv::Mat> frms(NUM_FRM);
+	static cv::VideoCapture cap(videoPath);
+	if (!cap.isOpened()) {
+		std::cout << "Error opening video file." << std::endl;
+		exit(-1);
+	}
+	for (int i = 0;i < NUM_FRM && cap.isOpened();i++)
+	{
+		cap >> frms[i];
+	}
+	cap.release();
+	cv::namedWindow(window_name);
+	for (int k = 0; 1;)
+	{
+		double maxy, miny;
+		auto& mvs = motionVectors[k];
+		auto& sad = sads[k];
+		vector<double> depths;
+		for (auto mv : mvs) depths.push_back(mv(1));
+		maxy = miny = depths[0];
+		for (int i = 0;i < depths.size();i++)
+		{
+			double d = depths[i];
+			double s = sad[i];
+			if (CONDITION)
+			{
+				maxy = std::max(maxy, d);
+				miny = std::min(miny, d);
+			}
+		}
+
+		// Replace "your_video_path" with the actual path to your H.264 video file
+
+
+		cv::Mat resizedFrame;
+		cv::resize(frms[k], resizedFrame, cv::Size(), 0.5, 0.5); // Resize to half the dimensions
+
+		for (int i = 0;i < ROWS;i += 2)
+		{
+			for (int j = 0; j < COLS; j += 2)
+			{
+				int ij = i * COLS + j;
+				double dy = (depths[ij] - miny) / (maxy - miny);
+				cv::Point p1(8 * i, 8 * j), p2(8 * i + 8, 8 * j + 8);
+				int s = sad[ij];
+				double d = dy;
+				if (CONDITION)
+					cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255 / 2, dy * 255 / 2), cv::FILLED);
+			}
+		}
+		cv::imshow(window_name, resizedFrame);
+		int key = 'X';
+		while (key != 'S' && key != 'W')
+		{
+			key = toupper(cv::waitKey(0));
+		}
+		// last frame is problematic + useless, just ignore it!
+		if (key == 'W') k = std::min(k + 1, static_cast<int>(motionVectors.size()) - 1);
+		else if (key == 'S') k = std::max(k - 1, 0);
+	}
 	cv::waitKey(0);
+	cv::destroyAllWindows();
 
 }
