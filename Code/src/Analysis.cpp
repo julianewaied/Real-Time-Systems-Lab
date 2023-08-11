@@ -13,7 +13,7 @@ Eigen::Matrix3<double> Analyzer::getRotationMatrix(double theta,const Eigen::Vec
 	return rotation_matrix;
 }
 
-Eigen::Matrix3d explicitRotation(int angle)
+Eigen::Matrix3d explicitRotation(double angle)
 {
 	double theta = EIGEN_PI * angle / 180;
 	Matrix3d mat = Matrix3d::Zero();
@@ -21,12 +21,18 @@ Eigen::Matrix3d explicitRotation(int angle)
 	mat(0, 2) = sin(theta);
 	mat(2, 0) = -sin(theta);
 	mat(2, 2) = cos(theta);
+	mat(1, 1) = 1;
 	return mat;
 }
 
 void Analyzer::rotatePoints(vector<Eigen::Vector3d>& points, double angle, const Eigen::Vector3d& axis)
 {
-	auto mat = getRotationMatrix(angle, axis);
+	Eigen::Matrix3d mat;
+	Eigen::Vector3d yaxis(0, 1, 0);
+	if (axis != yaxis)
+		mat = getRotationMatrix(angle, axis);
+	else
+		mat = explicitRotation(angle);
 	for (int i =0;i<points.size();i++)
 	{
 		points[i] = mat * points[i];

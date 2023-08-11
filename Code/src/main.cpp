@@ -8,7 +8,7 @@
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #define NORM(x,y) (x*x+y*y)
-#define FILTER_RADIUS 1E6
+#define FILTER_RADIUS 3E4
 #define NUM_FRM 24
 using std::cout;
 using std::map;
@@ -66,54 +66,58 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
     Analyzer a(fx, fy, cx, cy);
     for (int i = 0;i < mvFiles.size();i++)
     {
-        // import all data for file
-        auto motionVectors = a.importMV(mvFiles[i]);
-        CSVFile height_file(heightFiles[i], NUM_FRM);
-        height_file.openFile();
-        auto heights = height_file.readColumn();
-        auto centers = a.getCenters();
-        // dH is a backup for calculating depths
-        vector<double> dh = heights;
-        vector<Eigen::Vector3d> tmp;
-        // continuize the heights function.
-        a.continuize(dh);
-        a.differences(dh);
-        // for each frame in the video
-        for (int k = 0;k < motionVectors.size();k++)
+        if (true)
         {
-            // get the mapped points then add the heights, and add it to the cloud
-            vector<Eigen::Vector3d> tmp = a.mapPoints(centers, motionVectors[k], dh[k]);
-            for (auto v : tmp)
+            // import all data for file
+            auto motionVectors = a.importMV(mvFiles[i]);
+            CSVFile height_file(heightFiles[i], NUM_FRM);
+            height_file.openFile();
+            auto heights = height_file.readColumn();
+            auto centers = a.getCenters();
+            // dH is a backup for calculating depths
+            vector<double> dh = heights;
+            vector<Eigen::Vector3d> tmp;
+            // continuize the heights function.
+            a.continuize(dh);
+            a.differences(dh);
+            // for each frame in the video
+            for (int k = 0;k < motionVectors.size();k++)
             {
-                v(1) += heights[k];
+                // get the mapped points then add the heights, and add it to the cloud
+                vector<Eigen::Vector3d> tmp = a.mapPoints(centers, motionVectors[k], dh[k]);
+                for (auto v : tmp)
+                {
+                    v(1) += heights[k];
+                }
+                for (int j = 0;j < tmp.size();j++)
+                {
+                    if (NORM(tmp[j](0), tmp[j](2)) < FILTER_RADIUS)
+                        points.push_back(tmp[j]);
+                }
             }
-            for(int i =0;i<tmp.size();i++)
-            {
-                if(NORM(tmp[i](0),tmp[i](2))<FILTER_RADIUS)
-                points.push_back(tmp[i]);
+            //Analyzer::rotatePoints(points, i==2?90:60 * i);
+            Analyzer::rotatePoints(points, 60 * i);
+            std::cout << "Processing Angle : " << 60 * i << std::endl;
+        }
+    }
+        // write to obj file
+        int line = 1;
+        vector<string> faces;
+        for (auto point : points)
+        {
+            string s = "f ";
+            for (int k = 0;k < 3;k++) {
+                int A = 1;
+                out << "v " << point(0) + ((k % 3) / 2) * A << " " << point(2) + (((k + 1) % 3) / 2) * A << " " << point(1) / 10 + A * ((k + 2) % 3) / 2 << std::endl;
+                s = s + std::to_string(line++) + " ";
             }
+            faces.push_back(s + "\n");
         }
-        Analyzer::rotatePoints(points, 60*i);
-        std::cout << "Processing Angle : " << 60 * i << std::endl;
-    }
-    // write to obj file
-    int line = 1;
-    vector<string> faces;
-    for (auto point : points)
-    {
-        string s = "f ";
-        for (int k = 0;k < 3;k++) {
-            int A = 1;
-            out << "v " << point(0) + ((k%3)/2)*A << " " << point(2) + (((k+1)%3)/2)*A << " " << point(1) / 10 + A*((k+2)%3)/2 << std::endl;
-            s = s + std::to_string(line++) + " ";
+        for (auto f : faces)
+        {
+            out << f;
         }
-        faces.push_back(s+"\n");
-        //if (line >=10) break;
-    }
-    for (auto f : faces)
-    {
-        out << f;
-    }
+        
 }
 
 int Run()

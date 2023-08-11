@@ -3,6 +3,8 @@
 #include "../include/Analysis.h"
 #include <map>
 #define NUM_FRM 24
+#define NORM(x,y) (x*x+y*y)
+#define FILTER_RADIUS 5E3
 const double cx = 319.7108;
 const double cy = 231.1376;
 const double fx = 506.2113;
@@ -70,11 +72,11 @@ void PointDisplayer::display(const vector<cv::Point2i>& points) const
 
 void PointDisplayer::topDownView(const vector<Eigen::Vector3d>& points) const
 {
-	vector<cv::Point2i> points2d(points.size());
+	vector<cv::Point2i> points2d;
 	for (int i = 0;i < points.size();i++)
 	{
-		points2d[i].x = points[i](0);
-		points2d[i].y = points[i](2);
+		if(NORM(points[i](0),points[i](2))< FILTER_RADIUS)
+			points2d.push_back(Point2i(points[i](0), points[i](2)));
 	}
 	display(points2d);
 }
