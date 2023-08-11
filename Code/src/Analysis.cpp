@@ -2,7 +2,7 @@
 #include "../include/PointDisplayer.h"
 #include <vector>
 #define NUM_FRM 24
-#define CONDITION (d>0 && s>100)
+
 
 using namespace Eigen;
 Eigen::Matrix3<double> Analyzer::getRotationMatrix(double theta,const Eigen::Vector3d& axis)

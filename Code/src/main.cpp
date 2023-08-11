@@ -90,14 +90,14 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
 
 int Run()
 {
-    PointDisplayer::BuildTDView(mvs_paths, heights);
+    //PointDisplayer::BuildTDView(mvs_paths, heights);
     int i = 0;
     static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
-    //BuildDepthMap(mvs_paths[i], videoPath);
-    //CSVFile file(mvs_paths[i], NUM_FRM);
-    //file.openFile();
-    //vector<vector<double>> SADs = file.getSAD();
-    //BuildDepthMap(mvs_paths[i], videoPath,SADs);
+    //PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,sads);
+    CSVFile file(mvs_paths[i], NUM_FRM);
+    file.openFile();
+    vector<vector<double>> SADs = file.getSAD();
+    PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,SADs);
     string output = R"(C:\Users\WIN10PRO\Desktop\test.obj)";
     //writeOBJ(mvs_paths, heights, output);
     

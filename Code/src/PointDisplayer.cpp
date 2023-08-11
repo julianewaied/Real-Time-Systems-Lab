@@ -3,7 +3,6 @@
 #include "../include/Analysis.h"
 #include <map>
 #define NUM_FRM 24
-#define CONDITION (d>0 && s>100)
 const double cx = 319.7108;
 const double cy = 231.1376;
 const double fx = 506.2113;
@@ -92,9 +91,9 @@ int PointDisplayer::BuildTDView(vector<string> mvFiles, vector<string> heightFil
 		std::cout << "Processing Angle : " << 60 * i << std::endl;
 		points.insert(points.end(), tmp.begin(), tmp.end());
 	}
-	//string window_name = "Room Map";
-	//PointDisplayer displayer(window_name);
-	//displayer.topDownView(points);
+	string window_name = "Room Map";
+	PointDisplayer displayer(window_name);
+	displayer.topDownView(points);
 	return 0;
 }
 
@@ -129,7 +128,7 @@ void PointDisplayer::BuildDepthMap(const string& path, const string& videoPath, 
 		{
 			double d = depths[i];
 			double s = sad[i];
-			if (CONDITION)
+			if (FILTER)
 			{
 				maxy = std::max(maxy, d);
 				miny = std::min(miny, d);
@@ -151,7 +150,7 @@ void PointDisplayer::BuildDepthMap(const string& path, const string& videoPath, 
 				cv::Point p1(8 * i, 8 * j), p2(8 * i + 8, 8 * j + 8);
 				int s = sad[ij];
 				double d = dy;
-				if (CONDITION)
+				if (FILTER)
 					cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255 / 2, dy * 255 / 2), cv::FILLED);
 			}
 		}
