@@ -7,7 +7,8 @@
 #include <map>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
-
+#define NORM(x,y) (x*x+y*y)
+#define FILTER_RADIUS 1E6
 #define NUM_FRM 24
 using std::cout;
 using std::map;
@@ -65,17 +66,44 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
     Analyzer a(fx, fy, cx, cy);
     for (int i = 0;i < mvFiles.size();i++)
     {
-        auto tmp = a.extractPoints(mvFiles[i], heightFiles[i], 60 * i);
+        // import all data for file
+        auto motionVectors = a.importMV(mvFiles[i]);
+        CSVFile height_file(heightFiles[i], NUM_FRM);
+        height_file.openFile();
+        auto heights = height_file.readColumn();
+        auto centers = a.getCenters();
+        // dH is a backup for calculating depths
+        vector<double> dh = heights;
+        vector<Eigen::Vector3d> tmp;
+        // continuize the heights function.
+        a.continuize(dh);
+        a.differences(dh);
+        // for each frame in the video
+        for (int k = 0;k < motionVectors.size();k++)
+        {
+            // get the mapped points then add the heights, and add it to the cloud
+            vector<Eigen::Vector3d> tmp = a.mapPoints(centers, motionVectors[k], dh[k]);
+            for (auto v : tmp)
+            {
+                v(1) += heights[k];
+            }
+            for(int i =0;i<tmp.size();i++)
+            {
+                if(NORM(tmp[i](0),tmp[i](2))<FILTER_RADIUS)
+                points.push_back(tmp[i]);
+            }
+        }
+        Analyzer::rotatePoints(points, 60*i);
         std::cout << "Processing Angle : " << 60 * i << std::endl;
-        points.insert(points.end(), tmp.begin(), tmp.end());
     }
+    // write to obj file
     int line = 1;
     vector<string> faces;
     for (auto point : points)
     {
         string s = "f ";
         for (int k = 0;k < 3;k++) {
-            int A = 20;
+            int A = 1;
             out << "v " << point(0) + ((k%3)/2)*A << " " << point(2) + (((k+1)%3)/2)*A << " " << point(1) / 10 + A*((k+2)%3)/2 << std::endl;
             s = s + std::to_string(line++) + " ";
         }
@@ -92,14 +120,14 @@ int Run()
 {
     //PointDisplayer::BuildTDView(mvs_paths, heights);
     int i = 0;
-    static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
+    //static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
     //PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,sads);
-    CSVFile file(mvs_paths[i], NUM_FRM);
-    file.openFile();
-    vector<vector<double>> SADs = file.getSAD();
-    PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,SADs);
+    //CSVFile file(mvs_paths[i], NUM_FRM);
+    //file.openFile();
+    //vector<vector<double>> SADs = file.getSAD();
+    //PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,SADs);
     string output = R"(C:\Users\WIN10PRO\Desktop\test.obj)";
-    //writeOBJ(mvs_paths, heights, output);
+    writeOBJ(mvs_paths, heights, output);
     
     return 0;
 }
