@@ -73,7 +73,7 @@ vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& cent
 	// assuming constant partial derivative of H.
 	for (int i =0;i<normalized.size();i++)
 	{
-		if(mv[i](1) != 0)
+		if (mv[i](1) != 0 && dH != 0)
 			points.push_back(normalized[i] * std::abs(fy * dH / mv[i](1)));
 	}
 	return points;

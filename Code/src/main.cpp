@@ -75,7 +75,11 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
             auto heights = height_file.readColumn();
             auto centers = a.getCenters();
             // dH is a backup for calculating depths
-            vector<double> dh = heights;
+            vector<double> dh;
+            for (auto h : heights)
+            {
+                dh.push_back(h);
+            }
             vector<Eigen::Vector3d> tmp;
             // continuize the heights function.
             a.continuize(dh);
@@ -89,14 +93,13 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
                 {
                     v(1) += heights[k];
                 }
+                Analyzer::rotatePoints(tmp, 60*i);
                 for (int j = 0;j < tmp.size();j++)
                 {
                     if (NORM(tmp[j](0), tmp[j](2)) < FILTER_RADIUS)
                         points.push_back(tmp[j]);
                 }
             }
-            //Analyzer::rotatePoints(points, i==2?90:60 * i);
-            Analyzer::rotatePoints(points, 60 * i);
             std::cout << "Processing Angle : " << 60 * i << std::endl;
         }
     }
