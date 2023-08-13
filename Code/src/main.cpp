@@ -7,8 +7,8 @@
 #include <map>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
-#include <chrono>
-#include <thread>
+#define NORM(x,y) (x*x+y*y)
+#define FILTER_RADIUS 3E4
 #define NUM_FRM 24
 using std::cout;
 using std::map;
@@ -35,172 +35,10 @@ vector<string> mvs_paths{
     "C:/Users/WIN10PRO/Desktop/My Stuff/University/BSC/Y3/RT systems/Real-Time-Systems-Lab/Code/Data/vertical rotation/csv/fall2.csv"
 };
 
-// returns a list of MV for each frame.
-vector<frames> importMV(const string& path)
-{
-    CSVFile file(path,NUM_FRM);
-    file.openFile();
-    return file.readFile();
-}
-
-// returns the center of the frame!
-vector<Eigen::Vector2d> getCenters()
-{
-    vector<Eigen::Vector2d> centers;
-    for (int i = 0;i < ROWS;i++)
-    {
-        for (int j = 0; j < COLS;j++)
-        {
-            centers.push_back(Eigen::Vector2d(16 * i + 8, 16 * j + 8));
-        }
-    }
-    return centers;
-}
-
-void continuize(vector<double>& heights)
-{
-    int i = 1;
-    int j = 0;
-    while (i < heights.size())
-    {
-        while (i < heights.size() && heights[i] == heights[j]) i++;
-        if (i == heights.size()) break;
-        double d = heights[i] - heights[j];
-        double diff = d / (i - j);
-        for (int k = j + 1; k < i;k++)
-        {
-            heights[k] = heights[k - 1] + diff;
-        }
-        j = i;
-    }
-}
-
-void differences(vector<double>& vec)
-{
-    vector<double> tmp = vec;
-    for (int i = 1;i < vec.size();i++)
-    {
-        vec[i] = tmp[i] - tmp[i - 1];
-    }
-}
-
-vector<Eigen::Vector3d> extractPoints(string path, string heights_path,int angle)
-{
-    auto motionVectors = importMV(path);
-    CSVFile height_file(heights_path, NUM_FRM);
-    height_file.openFile();
-    auto heights = height_file.readColumn();
-    auto centers = getCenters();
-    Analyzer analyzer(fx, fy, cx, cy);
-    vector<Eigen::Vector3d> points;
-    // continuize the heights function.
-    continuize(heights);
-    differences(heights);
-    for (int i = 0;i < motionVectors.size();i++)
-    {
-        vector<Eigen::Vector3d> tmp = analyzer.mapPoints(centers, motionVectors[i], heights[i]);
-        points.insert(points.end(), tmp.begin(), tmp.end());
-    }
-    Analyzer::rotatePoints(points,angle);
-    return points;
-}
-
-void showTD(vector<Eigen::Vector3d> points)
-{
-    string window_name = "Room Map";
-    PointDisplayer displayer(window_name);
-    displayer.topDownView(points);
-}
-
-int BuildTDView(vector<string> mvFiles, vector<string> heightFiles) 
-{
-
-    if (mvFiles.size() != heightFiles.size()) throw "Invalid sizes in BuildTDView";
-    vector<Eigen::Vector3d> points;
-    for (int i = 0;i < mvFiles.size();i++)
-    {
-        auto tmp = extractPoints(mvFiles[i], heightFiles[i], 60*i);
-        std::cout << "Processing Angle : " << 60 * i << std::endl;
-        points.insert(points.end(), tmp.begin(), tmp.end());
-    }
-    showTD(points);
-    return 0;
-}
-
-void BuildDepthMap(const string& path,const string& videoPath)
-{
-    const int frame_num = 5;
-    const int num_vid = 4;
-    auto motionVectors = importMV(path);
-    auto centers = getCenters();
-    string window_name = "Depth Map";
-    vector<cv::Mat> frms(NUM_FRM);
-    static cv::VideoCapture cap(videoPath);
-    if (!cap.isOpened()) {
-        std::cout << "Error opening video file." << std::endl;
-        exit(-1);
-    }
-    for (int i = 0;i < NUM_FRM && cap.isOpened();i++)
-    {
-        cap >> frms[i];
-    }
-    cap.release();
-    cv::namedWindow(window_name);
-    for (int k = 0; 1;)
-    {
-        double maxy, miny;
-        auto& mvs = motionVectors[k];
-        if (mvs.size() != COLS * ROWS) cout << "ISSUE!!!";
-        maxy = miny = mvs[0](1);
-        for (auto mv : mvs)
-        {
-            maxy = std::max(maxy, mv(1));
-            //avoid y = 0
-            if (mv(1))
-                miny = std::min(miny, mv(1));
-        }
-
-        // Replace "your_video_path" with the actual path to your H.264 video file
-
-
-        cv::Mat resizedFrame;
-        cv::resize(frms[k], resizedFrame, cv::Size(), 0.5, 0.5); // Resize to half the dimensions
-
-        for (int i = 0;i < ROWS;i += 2)
-        {
-            for (int j = 0; j < COLS; j += 2)
-            {
-                int ij = i * COLS + j;
-                double dy = (mvs[ij](1) - miny) / (maxy - miny);
-                double dx = mvs[ij](0);
-                cv::Point p1(8 * i + 1, 8 * j + 1), p2(8 * i + 8 - 1, 8 * j + 8 - 1);
-                if (dy >= 0 && std::abs(dx) < 10)
-                    cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255, dy * 255), cv::FILLED);
-            }
-        }
-        cv::imshow(window_name, resizedFrame);
-        int key = 'X';
-        while (key != 'S' && key != 'W')
-        {
-            key = toupper(cv::waitKey(0));
-        }
-        // last frame is problematic + useless, just ignore it!
-        if (key == 'W') k = std::min(k + 1, static_cast<int>(motionVectors.size()) - 1);
-        else if (key == 'S') k = std::max(k - 1, 0);
-    }
-    cv::waitKey(0);
-    cv::destroyAllWindows();
-
-}
-
-void Testing()
-{
-}
-
-
+// counts the number of instances of each y value and plots out counters
 void countFile(const string& path)
 {
-    auto mvs = importMV(path);
+    auto mvs = Analyzer::importMV(path);
     map<double, int> all;
     for (int i = 0;i < mvs.size();i++)
     {
@@ -217,11 +55,86 @@ void countFile(const string& path)
 
 }
 
+// writes points to obj file to be projected in 3D Builder
+void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, const string& outputPath)
+{
+    std::ofstream out;
+    out.open(outputPath);
+    if (!out.is_open())
+        exit(1);
+    vector<Eigen::Vector3d> points;
+    Analyzer a(fx, fy, cx, cy);
+    for (int i = 0;i < mvFiles.size();i++)
+    {
+        if (true)
+        {
+            // import all data for file
+            auto motionVectors = a.importMV(mvFiles[i]);
+            CSVFile height_file(heightFiles[i], NUM_FRM);
+            height_file.openFile();
+            auto heights = height_file.readColumn();
+            auto centers = a.getCenters();
+            // dH is a backup for calculating depths
+            vector<double> dh;
+            for (auto h : heights)
+            {
+                dh.push_back(h);
+            }
+            vector<Eigen::Vector3d> tmp;
+            // continuize the heights function.
+            a.continuize(dh);
+            a.differences(dh);
+            // for each frame in the video
+            for (int k = 0;k < motionVectors.size();k++)
+            {
+                // get the mapped points then add the heights, and add it to the cloud
+                vector<Eigen::Vector3d> tmp = a.mapPoints(centers, motionVectors[k], dh[k]);
+                for (auto v : tmp)
+                {
+                    v(1) += heights[k];
+                }
+                Analyzer::rotatePoints(tmp, 60*i);
+                for (int j = 0;j < tmp.size();j++)
+                {
+                    if (NORM(tmp[j](0), tmp[j](2)) < FILTER_RADIUS)
+                        points.push_back(tmp[j]);
+                }
+            }
+            std::cout << "Processing Angle : " << 60 * i << std::endl;
+        }
+    }
+        // write to obj file
+        int line = 1;
+        vector<string> faces;
+        for (auto point : points)
+        {
+            string s = "f ";
+            for (int k = 0;k < 3;k++) {
+                int A = 1;
+                out << "v " << point(0) + ((k % 3) / 2) * A << " " << point(2) + (((k + 1) % 3) / 2) * A << " " << point(1) / 10 + A * ((k + 2) % 3) / 2 << std::endl;
+                s = s + std::to_string(line++) + " ";
+            }
+            faces.push_back(s + "\n");
+        }
+        for (auto f : faces)
+        {
+            out << f;
+        }
+        
+}
+
 int Run()
 {
-    //BuildTDView(mvs_paths, heights);
+    //PointDisplayer::BuildTDView(mvs_paths, heights);
     int i = 0;
-    static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
-    BuildDepthMap(mvs_paths[i], videoPath);
+    //static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
+    //PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,sads);
+    //CSVFile file(mvs_paths[i], NUM_FRM);
+    //file.openFile();
+    //vector<vector<double>> SADs = file.getSAD();
+    //PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,SADs);
+    string output = R"(C:\Users\WIN10PRO\Desktop\test.obj)";
+    writeOBJ(mvs_paths, heights, output);
+    
     return 0;
 }

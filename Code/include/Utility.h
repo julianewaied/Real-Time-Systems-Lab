@@ -6,7 +6,7 @@
 using std::string;
 using std::vector;
 // MotionVector matrix dimensions!
-const int ROWS = 102;
+const int ROWS = 104;
 const int COLS = 77;
 typedef Eigen::Vector2d MotionVector;
 typedef vector<MotionVector> frames;
@@ -18,6 +18,7 @@ class CSVFile
 	std::ifstream filp;
 	MotionVector readNext2();
 	double readNext1();
+	double readNextSAD();
 
 public:
 	CSVFile(const std::string& path, int lines) : path(path), lines(lines) {};
@@ -35,5 +36,7 @@ public:
 	vector<frames> readFile(int length = -1);
 
 	vector<double> readColumn(int length = -1);
+
+	vector<vector<double>> getSAD(int length = -1);
 
 };

@@ -25,7 +25,11 @@ public:
 
 	void topDownView(const vector<Eigen::Vector3d>& points) const;
 
-	// shows the points on a white image!
-	void showDepthMap(const vector<Eigen::Vector3d>& points) const;
+
+	// builds top-down view of all the files and plots it
+	static int BuildTDView(vector<string> mvFiles, vector<string> heightFiles);
+
+	// builds depth map of one file and plots it
+	static void BuildDepthMap(const string& path, const string& videoPath, vector<vector<double>> sads);
 
 };
