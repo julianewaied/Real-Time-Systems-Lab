@@ -2,7 +2,7 @@
 #include "../include/PointDisplayer.h"
 #include <vector>
 #define NUM_FRM 24
-
+#define SFILTER (sad<126 && sad>100)
 
 using namespace Eigen;
 Eigen::Matrix3<double> Analyzer::getRotationMatrix(double theta,const Eigen::Vector3d& axis)
@@ -65,7 +65,7 @@ vector<Eigen::Vector3d> Analyzer::mapNormalizedPoints(const vector<Eigen::Vector
 	return mapped;
 }
 
-vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH)
+vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH,vector<double> SADs)
 {
 	auto normalized = this->mapNormalizedPoints(centers);
 	vector<Vector3d> points;
@@ -73,7 +73,8 @@ vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& cent
 	// assuming constant partial derivative of H.
 	for (int i =0;i<normalized.size();i++)
 	{
-		if (mv[i](1) != 0 && dH != 0)
+		double sad = SADs[i];
+		if (mv[i](1) != 0 && dH != 0 && (SFILTER||SADs.size()==0))
 			points.push_back(normalized[i] * std::abs(fy * dH / mv[i](1)));
 	}
 	return points;

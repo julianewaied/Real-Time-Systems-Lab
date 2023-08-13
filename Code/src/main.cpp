@@ -74,6 +74,9 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
             height_file.openFile();
             auto heights = height_file.readColumn();
             auto centers = a.getCenters();
+            CSVFile sads_file(mvFiles[i], NUM_FRM);
+            sads_file.openFile();
+            auto sads = sads_file.getSAD();
             // dH is a backup for calculating depths
             vector<double> dh;
             for (auto h : heights)
@@ -88,7 +91,7 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
             for (int k = 0;k < motionVectors.size();k++)
             {
                 // get the mapped points then add the heights, and add it to the cloud
-                vector<Eigen::Vector3d> tmp = a.mapPoints(centers, motionVectors[k], dh[k]);
+                vector<Eigen::Vector3d> tmp = a.mapPoints(centers, motionVectors[k], dh[k],sads[k]);
                 for (auto v : tmp)
                 {
                     v(1) += heights[k];

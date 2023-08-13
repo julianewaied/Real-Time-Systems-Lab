@@ -42,7 +42,7 @@ public:
 
 	// given a frame and its mv, with height difference, return the full map, without rotation
 	// assumes center[i] matches mv[i].
-	vector<Eigen::Vector3d>  mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH);
+	vector<Eigen::Vector3d>  mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH,vector<double> SADs = vector<double>());
 	
 	// returns the center of the frame!
 	static vector<Eigen::Vector2d> getCenters();
