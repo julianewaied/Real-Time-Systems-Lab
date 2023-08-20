@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <Eigen/Geometry>
-#define FILTER (std::abs(s)>250&& d!=0)
+#define FILTER ((sads.size()==0 || (100<s && s<125))&& d!=0)
 using std::vector;
 class Analyzer
 {

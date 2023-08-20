@@ -2,7 +2,7 @@
 #include "../include/PointDisplayer.h"
 #include <vector>
 #define NUM_FRM 24
-#define SFILTER (sad<126 && sad>100)
+#define SFILTER (sad<125 && sad>100)
 
 using namespace Eigen;
 Eigen::Matrix3<double> Analyzer::getRotationMatrix(double theta,const Eigen::Vector3d& axis)
@@ -60,8 +60,10 @@ vector<Eigen::Vector3d> Analyzer::mapNormalizedPoints(const vector<Eigen::Vector
 {
 	vector<Vector3d> mapped(points.size());
 	if (!matrixBuilt) buildCameraMatrix();
-	for (int i=0;i<points.size();i++)
+	for (int i = 0;i < points.size();i++)
+	{
 		mapped[i] = CameraMatrix * points[i].homogeneous();
+	}
 	return mapped;
 }
 

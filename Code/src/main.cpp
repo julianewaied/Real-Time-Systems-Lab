@@ -86,12 +86,12 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
             vector<Eigen::Vector3d> tmp;
             // continuize the heights function.
             a.continuize(dh);
-            a.differences(dh);
+            //a.differences(dh);
             // for each frame in the video
-            for (int k = 0;k < motionVectors.size();k++)
+            for (int k = 1;k < motionVectors.size();k++)
             {
                 // get the mapped points then add the heights, and add it to the cloud
-                vector<Eigen::Vector3d> tmp = a.mapPoints(centers, motionVectors[k], dh[k],sads[k]);
+                vector<Eigen::Vector3d> tmp = a.mapPoints(centers, motionVectors[k], dh[k]-dh[k-1], sads[k]);
                 for (auto v : tmp)
                 {
                     v(1) += heights[k];
@@ -129,15 +129,16 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
 int Run()
 {
     //PointDisplayer::BuildTDView(mvs_paths, heights);
-    int i = 0;
-    //static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\rise0.h264)";
-    //PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,sads);
-    //CSVFile file(mvs_paths[i], NUM_FRM);
-    //file.openFile();
-    //vector<vector<double>> SADs = file.getSAD();
-    //PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,SADs);
-    string output = R"(C:\Users\WIN10PRO\Desktop\test.obj)";
-    writeOBJ(mvs_paths, heights, output);
+    int i = 5;
+    static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\fall2.h264)";
+    //PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath);
+    CSVFile file(mvs_paths[i], NUM_FRM);
+    file.openFile();
+    vector<vector<double>> SADs = file.getSAD();
+    PointDisplayer::BuildDepthMap(mvs_paths[i], videoPath,SADs);
+    // printing 3D image
+    //string output = R"(C:\Users\WIN10PRO\Desktop\test.obj)";
+    //writeOBJ(mvs_paths, heights, output);
     
     return 0;
 }

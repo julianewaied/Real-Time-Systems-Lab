@@ -30,6 +30,6 @@ public:
 	static int BuildTDView(vector<string> mvFiles, vector<string> heightFiles);
 
 	// builds depth map of one file and plots it
-	static void BuildDepthMap(const string& path, const string& videoPath, vector<vector<double>> sads);
+	static void BuildDepthMap(const string& path, const string& videoPath, vector<vector<double>> sads=vector<vector<double>>());
 
 };

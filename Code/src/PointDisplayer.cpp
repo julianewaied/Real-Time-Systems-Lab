@@ -129,7 +129,11 @@ void PointDisplayer::BuildDepthMap(const string& path, const string& videoPath, 
 		for (int i = 0;i < depths.size();i++)
 		{
 			double d = depths[i];
-			double s = sad[i];
+			double s;
+			if (sads.size())
+				s = sad[i];
+			else
+				s = 0;
 			if (FILTER)
 			{
 				maxy = std::max(maxy, d);
@@ -150,7 +154,7 @@ void PointDisplayer::BuildDepthMap(const string& path, const string& videoPath, 
 				int ij = i * COLS + j;
 				double dy = (depths[ij] - miny) / (maxy - miny);
 				cv::Point p1(8 * i, 8 * j), p2(8 * i + 8, 8 * j + 8);
-				int s = sad[ij];
+				int s = sads.size()?sad[ij]:0;
 				double d = dy;
 				if (FILTER)
 					cv::rectangle(resizedFrame, p1, p2, cv::Scalar(dy * 255, dy * 255 / 2, dy * 255 / 2), cv::FILLED);
