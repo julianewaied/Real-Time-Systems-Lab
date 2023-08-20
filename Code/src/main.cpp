@@ -128,6 +128,7 @@ void writeOBJ(const vector<string>& mvFiles, const vector<string>& heightFiles, 
 
 int Run()
 {
+    // testing
     //PointDisplayer::BuildTDView(mvs_paths, heights);
     int i = 5;
     static std::string videoPath = R"(C:\Users\WIN10PRO\Desktop\My Stuff\University\BSC\Y3\RT systems\Real-Time-Systems-Lab\Code\Data\vertical rotation\h264\fall2.h264)";
