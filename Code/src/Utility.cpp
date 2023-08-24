@@ -27,8 +27,7 @@ void CSVFile::setPath(const std::string& path)
 	if (filp.is_open()) filp.close();
 	this->path = path;
 }
-// in default case, reads all the file. otherwise, reads from the required index to the required length
-// matrix will be replaced with eigen matrix later on.
+
 vector<frames> CSVFile::readFile(int length)
 {
 	vector<frames> all;
@@ -44,6 +43,7 @@ vector<frames> CSVFile::readFile(int length)
 	}
 	return all;
 }
+
 vector<vector<double>> CSVFile::getSAD(int length)
 {
 	vector<vector<double>> all;
@@ -70,6 +70,7 @@ double CSVFile::readNextSAD()
 		std::cout << "Problem reading a line from the file!\n";
 	}
 	else {
+		// read the 3 coordinates, return the third
 		std::istringstream stream(line);
 		stream >> a >>ch>> b >> ch >> c;
 		if (stream.fail()) {
@@ -79,6 +80,7 @@ double CSVFile::readNextSAD()
 	}
 	return c;
 }
+
 MotionVector CSVFile::readNext2()
 {
 	int a, b, c;
@@ -86,7 +88,7 @@ MotionVector CSVFile::readNext2()
 	std::string line;
 	std::getline(this->filp, line);
 	std::istringstream stream(line);
-
+	// read 2 coordinates from the file, then return them as a MotionVector
 	stream >> a >> comma >> b;
 	MotionVector vec = MotionVector(a,b);
 	return vec;
@@ -114,6 +116,7 @@ vector<double> CSVFile::readColumn(int length)
 {
 	vector<double> heights;
 	if (length == -1) length = lines;
+	// read each line into the heights vector, then return the vector.
 	for (int i = 0;i < length;i++)
 	{
 		heights.push_back(readNext1());

@@ -7,6 +7,7 @@
 using namespace Eigen;
 Eigen::Matrix3<double> Analyzer::getRotationMatrix(double theta,const Eigen::Vector3d& axis)
 {
+	// convert the angle to radians, then return the rotation matrix retrieved from Eigen
 	theta = EIGEN_PI * theta / 180;
 	Eigen::AngleAxisd rotation(theta, axis.normalized());
 	Eigen::Matrix3d rotation_matrix = rotation.toRotationMatrix();
@@ -15,6 +16,8 @@ Eigen::Matrix3<double> Analyzer::getRotationMatrix(double theta,const Eigen::Vec
 
 Eigen::Matrix3d explicitRotation(double angle)
 {
+	// used only for y rotations.
+	// substitute the values in the matrix and return it.
 	double theta = EIGEN_PI * angle / 180;
 	Matrix3d mat = Matrix3d::Zero();
 	mat(0, 0) = cos(theta);
@@ -27,6 +30,7 @@ Eigen::Matrix3d explicitRotation(double angle)
 
 void Analyzer::rotatePoints(vector<Eigen::Vector3d>& points, double angle, const Eigen::Vector3d& axis)
 {
+	// get rotation matrix, then multiply each point by it
 	Eigen::Matrix3d mat;
 	Eigen::Vector3d yaxis(0, 1, 0);
 	if (axis != yaxis)
@@ -46,6 +50,7 @@ const Eigen::Matrix3d& Analyzer::getCameraMatrix() const
 
 const Eigen::Matrix3d& Analyzer::buildCameraMatrix()
 {
+	// substitute the values in each entry, and set the matrix built flag to true
 	if (matrixBuilt) return CameraMatrix;
 	CameraMatrix(0, 0) = 1 / fx;
 	CameraMatrix(1, 1) = 1 / fy;
@@ -58,6 +63,7 @@ const Eigen::Matrix3d& Analyzer::buildCameraMatrix()
 
 vector<Eigen::Vector3d> Analyzer::mapNormalizedPoints(const vector<Eigen::Vector2d>& points)
 {
+	// add coordinate 1 to each 2D point, then multiply it by the camera matrix
 	vector<Vector3d> mapped(points.size());
 	if (!matrixBuilt) buildCameraMatrix();
 	for (int i = 0;i < points.size();i++)
@@ -69,10 +75,12 @@ vector<Eigen::Vector3d> Analyzer::mapNormalizedPoints(const vector<Eigen::Vector
 
 vector<Eigen::Vector3d>  Analyzer::mapPoints(const vector<Eigen::Vector2d>& centers, const vector<Eigen::Vector2d>& mv, double dH,vector<double> SADs)
 {
+	// get the points C^-1 * c_p
 	auto normalized = this->mapNormalizedPoints(centers);
 	vector<Vector3d> points;
 	// now calculate d = fy * Delta(H)/Delta(y)
-	// assuming constant partial derivative of H.
+	// SFILTER is the filtering policy on SAD.
+	// if no SAD array is given, sads.size()=0, thus SFILTER will always be ignored.
 	for (int i =0;i<normalized.size();i++)
 	{
 		double sad = SADs[i];
@@ -95,7 +103,6 @@ vector<double> Analyzer::getDepths(const frames& mv, double dH)
 	return depths;
 }
 
-// returns a list of MV for each frame.
 vector<frames> Analyzer::importMV(const string& path)
 {
 	CSVFile file(path, NUM_FRM);
@@ -103,7 +110,6 @@ vector<frames> Analyzer::importMV(const string& path)
 	return file.readFile();
 }
 
-// returns the center of the frame!
 vector<Eigen::Vector2d> Analyzer::getCenters()
 {
 	vector<Eigen::Vector2d> centers;
@@ -117,21 +123,23 @@ vector<Eigen::Vector2d> Analyzer::getCenters()
 	return centers;
 }
 
-// fixing sensor inaccuracy
 void Analyzer::continuize(vector<double>& heights)
 {
 	int i = 1;
 	int j = 0;
 	while (i < heights.size())
 	{
+		// move i to the next value
 		while (i < heights.size() && heights[i] == heights[j]) i++;
 		if (i == heights.size()) break;
+		// add the difference to all indices between j and i
 		double d = heights[i] - heights[j];
 		double diff = d / (i - j);
 		for (int k = j + 1; k < i;k++)
 		{
 			heights[k] = heights[k - 1] + diff;
 		}
+		// move j to i 
 		j = i;
 	}
 }
@@ -144,7 +152,7 @@ void Analyzer::differences(vector<double>& vec)
 		vec[i] = tmp[i] - tmp[i - 1];
 	}
 }
-// returns points of a single video
+
 vector<Eigen::Vector3d> Analyzer::extractPoints(string path, string heights_path, int angle)
 {
 	
@@ -157,11 +165,13 @@ vector<Eigen::Vector3d> Analyzer::extractPoints(string path, string heights_path
 	// continuize the heights function.
 	continuize(heights);
 	differences(heights);
+	// map the points of each frame, and add it to the points cloud
 	for (int i = 0;i < motionVectors.size();i++)
 	{
 		vector<Eigen::Vector3d> tmp = this->mapPoints(centers, motionVectors[i], heights[i]);
 		points.insert(points.end(), tmp.begin(), tmp.end());
 	}
+	// rotate by the given angle
 	Analyzer::rotatePoints(points, angle);
 	return points;
 }
