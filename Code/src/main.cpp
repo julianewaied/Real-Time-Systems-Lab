@@ -499,10 +499,10 @@ void writeOBJColor(const vector<string>& mvFiles, const vector<string>& heightFi
 
 int Run()
 {
-    // options are: "write obj", "show depth map", "write obj median", "write obj color", "top down"
-    string function = "show depth map";
+    // options are: "write obj", "show depth map", "write obj median", "write obj color"
+    string function = "write obj";
     // set numVideo to a number between 0 and 5, used in building depthMap.
-    int numVideo = 5;
+    int numVideo = 3;
 
     // set the output to the path of the obj file, and csv output to the csv output file
     string csvoutput = R"(C:\Users\WIN10PRO\Desktop\points.csv)";
