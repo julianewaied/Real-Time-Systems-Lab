@@ -1,7 +1,7 @@
 # Real Time Systems Lab
 ## About
 ### The Team
- Contributors: Julian Ewaied & Namir Ballan
+ Contributors: Julian Ewaied
  ###
  Lecturer: Dan Feldman
  ###
